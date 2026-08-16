@@ -126,6 +126,7 @@
             --nav-icon-scale: 2;
             --start-icon-scale: 1.875;
             --address-icon-scale: 1.75;
+            --dropdown-icon-scale: 1.5;
             --text-shadow-spread: 4px;
             --text-shadow-opacity: 0.9;
             --power-icon-scale: 1.8;
@@ -167,6 +168,10 @@
             transform: scale(var(--address-icon-scale));
         }
 
+        img[src^="icons/"].dropdown-icon-img {
+            transform: scale(var(--dropdown-icon-scale));
+        }
+
         .power-icon-img {
             transform: scale(var(--power-icon-scale));
         }
@@ -185,6 +190,24 @@
     </style>
 </head>
 <body class="h-screen w-screen relative overflow-hidden">
+
+    <!-- Debug Slider for Local Icons -->
+    <div id="debug-panel" class="fixed top-[20px] right-[20px] bg-[#ece9d8] border-[3px] border-[#0055e5] p-2 z-[9999999] shadow-lg rounded text-xs font-['Tahoma'] flex flex-col gap-1 items-center">
+        <b>Local Icon Size</b>
+        <input type="range" id="debug-scale-slider" min="0.5" max="5" step="0.1" value="2" oninput="updateLocalIconScale(this.value)">
+        <span id="debug-scale-val" class="font-bold">2.0x</span>
+    </div>
+    
+    <script>
+        function updateLocalIconScale(val) {
+            document.getElementById('debug-scale-val').textContent = val + 'x';
+            document.documentElement.style.setProperty('--desktop-icon-scale', val);
+            document.documentElement.style.setProperty('--nav-icon-scale', val);
+            document.documentElement.style.setProperty('--start-icon-scale', val);
+            document.documentElement.style.setProperty('--address-icon-scale', val);
+            document.documentElement.style.setProperty('--dropdown-icon-scale', val);
+        }
+    </script>
 
     <!-- Boot Loader Screen -->
     <div id="boot-wrapper" class="fixed inset-0 z-[1000000] bg-white flex items-center justify-center">
@@ -342,31 +365,31 @@
             <span class="text-[#aca899] text-xs font-['Tahoma'] shrink-0">Address</span>
             
             <div class="bg-white border border-[#7f9db9] flex-grow flex items-center px-1 cursor-pointer relative" onclick="toggleAddressDropdown(event)">
-                <img id="address-icon" src="icons/Reel.png" class="w-4 h-4 mr-1 address-icon-img shrink-0">
+                <img id="address-icon" src="icons/Reel.png" onerror="this.onerror=null; this.src='https://win98icons.alexmeub.com/icons/png/video-1.png';" class="w-4 h-4 mr-1 address-icon-img shrink-0">
                 <input type="text" id="address-text" class="w-full text-xs text-black mt-[2px] outline-none font-['Tahoma'] cursor-pointer" value="C:\Portfolio\Reel" readonly style="user-select: none;">
                 <span class="text-[10px] text-gray-500 pr-1">▼</span>
             </div>
 
             <!-- Cascading Address Dropdown Menu -->
             <div id="address-dropdown" class="hidden absolute top-full left-[60px] right-2 bg-white border border-[#7f9db9] shadow-md z-[1000] py-1 text-xs">
-                <div class="nav-item flex items-center gap-2 px-2 py-1 cursor-pointer hover:bg-[#316ac5] hover:text-white" onclick="selectNavTab('reel', 'https://win98icons.alexmeub.com/icons/png/video-1.png', 'Reel')">
-                    <img src="icons/Reel.png" onerror="this.onerror=null; this.src='https://win98icons.alexmeub.com/icons/png/video-1.png';" class="w-4 h-4">
+                <div class="nav-item flex items-center gap-2 px-2 py-1 cursor-pointer hover:bg-[#316ac5] hover:text-white" onclick="selectNavTab('reel', 'icons/Reel.png', 'https://win98icons.alexmeub.com/icons/png/video-1.png', 'Reel')">
+                    <img src="icons/Reel.png" onerror="this.onerror=null; this.src='https://win98icons.alexmeub.com/icons/png/video-1.png';" class="w-4 h-4 dropdown-icon-img">
                     <span>C:\Portfolio\Reel</span>
                 </div>
-                <div class="nav-item flex items-center gap-2 px-2 py-1 cursor-pointer hover:bg-[#316ac5] hover:text-white" onclick="selectNavTab('animation', 'https://icons.iconarchive.com/icons/microsoft/windows-xp/16/Folder-Closed-icon.png', 'Animation')">
-                    <img src="icons/Animation.png" onerror="this.onerror=null; this.src='https://icons.iconarchive.com/icons/microsoft/windows-xp/16/Folder-Closed-icon.png';" class="w-4 h-4">
+                <div class="nav-item flex items-center gap-2 px-2 py-1 cursor-pointer hover:bg-[#316ac5] hover:text-white" onclick="selectNavTab('animation', 'icons/Animation.png', 'https://win98icons.alexmeub.com/icons/png/directory_closed-4.png', 'Animation')">
+                    <img src="icons/Animation.png" onerror="this.onerror=null; this.src='https://win98icons.alexmeub.com/icons/png/directory_closed-4.png';" class="w-4 h-4 dropdown-icon-img">
                     <span>C:\Portfolio\Animation</span>
                 </div>
-                <div class="nav-item flex items-center gap-2 px-2 py-1 cursor-pointer hover:bg-[#316ac5] hover:text-white" onclick="selectNavTab('illustration', 'https://icons.iconarchive.com/icons/microsoft/windows-xp/16/Folder-Closed-icon.png', 'Illustration')">
-                    <img src="icons/Illustration.png" onerror="this.onerror=null; this.src='https://icons.iconarchive.com/icons/microsoft/windows-xp/16/Folder-Closed-icon.png';" class="w-4 h-4">
+                <div class="nav-item flex items-center gap-2 px-2 py-1 cursor-pointer hover:bg-[#316ac5] hover:text-white" onclick="selectNavTab('illustration', 'icons/Illustration.png', 'https://win98icons.alexmeub.com/icons/png/directory_closed-4.png', 'Illustration')">
+                    <img src="icons/Illustration.png" onerror="this.onerror=null; this.src='https://win98icons.alexmeub.com/icons/png/directory_closed-4.png';" class="w-4 h-4 dropdown-icon-img">
                     <span>C:\Portfolio\Illustration</span>
                 </div>
-                <div class="nav-item flex items-center gap-2 px-2 py-1 cursor-pointer hover:bg-[#316ac5] hover:text-white" onclick="selectNavTab('games', 'https://icons.iconarchive.com/icons/microsoft/windows-xp/16/Folder-Closed-icon.png', 'Games')">
-                    <img src="icons/Games.png" onerror="this.onerror=null; this.src='https://icons.iconarchive.com/icons/microsoft/windows-xp/16/Folder-Closed-icon.png';" class="w-4 h-4">
+                <div class="nav-item flex items-center gap-2 px-2 py-1 cursor-pointer hover:bg-[#316ac5] hover:text-white" onclick="selectNavTab('games', 'icons/Games.png', 'https://win98icons.alexmeub.com/icons/png/directory_closed-4.png', 'Games')">
+                    <img src="icons/Games.png" onerror="this.onerror=null; this.src='https://win98icons.alexmeub.com/icons/png/directory_closed-4.png';" class="w-4 h-4 dropdown-icon-img">
                     <span>C:\Portfolio\Games</span>
                 </div>
-                <div class="nav-item flex items-center gap-2 px-2 py-1 cursor-pointer hover:bg-[#316ac5] hover:text-white" onclick="selectNavTab('info', 'https://win98icons.alexmeub.com/icons/png/notepad_file-0.png', 'Info')">
-                    <img src="icons/info.png" onerror="this.onerror=null; this.src='https://win98icons.alexmeub.com/icons/png/notepad_file-0.png';" class="w-4 h-4">
+                <div class="nav-item flex items-center gap-2 px-2 py-1 cursor-pointer hover:bg-[#316ac5] hover:text-white" onclick="selectNavTab('info', 'icons/info.png', 'https://win98icons.alexmeub.com/icons/png/notepad_file-0.png', 'Info')">
+                    <img src="icons/info.png" onerror="this.onerror=null; this.src='https://win98icons.alexmeub.com/icons/png/notepad_file-0.png';" class="w-4 h-4 dropdown-icon-img">
                     <span>C:\Portfolio\Info</span>
                 </div>
             </div>
@@ -388,7 +411,7 @@
 
                 <!-- Animation Tab -->
                 <div id="animation" class="tab-content hidden h-full flex flex-col bg-white overflow-y-auto p-2">
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pb-4">
+                    <div class="grid grid-cols-2 gap-3 pb-4">
                         <div class="flex flex-col cursor-pointer group portfolio-item border border-transparent hover:border-[#316ac5] hover:bg-[#e5f3fb] p-2 rounded transition-colors" onclick="openVideoModal('Free Pancakes', '5kPIwY6hruE')">
                             <div class="w-full aspect-video bg-black border border-gray-400 flex flex-col items-center justify-center text-white overflow-hidden relative shadow-sm">
                                 <img src="https://img.youtube.com/vi/5kPIwY6hruE/maxresdefault.jpg" onerror="this.onerror=null; this.src='https://img.youtube.com/vi/5kPIwY6hruE/hqdefault.jpg';" class="w-full h-full object-cover">
@@ -554,7 +577,7 @@
     </div>
 
     <!-- START MENU LAYERED ON TOP OF TASKBAR -->
-    <div id="start-menu" class="hidden absolute bottom-[35px] left-0 w-[380px] max-w-[90vw] h-[450px] bg-white border border-[#0E42A4] rounded-tr-lg flex flex-col z-[200000] shadow-[4px_4px_10px_rgba(0,0,0,0.5)] overflow-hidden font-['Tahoma',sans-serif]">
+    <div id="start-menu" class="hidden fixed bottom-[35px] left-0 w-[380px] max-w-[90vw] h-[450px] bg-white border border-[#0E42A4] rounded-tr-lg flex flex-col z-[200000] shadow-[4px_4px_10px_rgba(0,0,0,0.5)] overflow-hidden font-['Tahoma',sans-serif]">
         <div class="h-[60px] bg-gradient-to-r from-[#1B5DE3] to-[#3980F4] border-b border-[#0E42A4] flex items-center px-4 gap-3 relative">
             <div class="w-[45px] h-[45px] rounded border-2 border-white overflow-hidden shadow-sm bg-white flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity" onclick="toggleAvatarSelector()">
                 <img id="current-avatar" src="images/avatar_01.png" onerror="this.onerror=null; this.src='https://placehold.co/100x100/blue/white?text=LM';" class="w-full h-full object-cover">
@@ -565,35 +588,35 @@
         
         <div class="flex-grow flex bg-white">
             <div class="w-[60%] flex flex-col py-2 px-1 border-r border-[#D3D3D3]">
-                <button class="hover:bg-[#2F71CD] hover:text-white px-2 py-2 text-left flex items-center gap-2 group transition-colors rounded-sm" onclick="selectNavTab('reel', 'https://win98icons.alexmeub.com/icons/png/video-1.png', 'Reel'); toggleStartMenu();">
+                <button class="hover:bg-[#2F71CD] hover:text-white px-2 py-2 text-left flex items-center gap-2 group transition-colors rounded-sm" onclick="selectNavTab('reel', 'icons/Reel.png', 'https://win98icons.alexmeub.com/icons/png/video-1.png', 'Reel'); toggleStartMenu();">
                     <img src="icons/Reel.png" onerror="this.onerror=null; this.src='https://win98icons.alexmeub.com/icons/png/video-1.png';" class="w-8 h-8 start-icon-img group-hover:drop-shadow-md">
                     <div class="flex flex-col leading-tight">
                         <span class="font-bold text-sm text-[#333] group-hover:text-white">Reel</span>
                         <span class="text-[10px] text-gray-500 group-hover:text-[#b3d4ff]">Vimeo Player</span>
                     </div>
                 </button>
-                <button class="hover:bg-[#2F71CD] hover:text-white px-2 py-2 text-left flex items-center gap-2 group transition-colors rounded-sm" onclick="selectNavTab('animation', 'https://icons.iconarchive.com/icons/microsoft/windows-xp/16/Folder-Closed-icon.png', 'Animation'); toggleStartMenu();">
-                    <img src="icons/Animation.png" onerror="this.onerror=null; this.src='https://icons.iconarchive.com/icons/microsoft/windows-xp/48/Folder-Closed-icon.png';" class="w-8 h-8 start-icon-img group-hover:drop-shadow-md">
+                <button class="hover:bg-[#2F71CD] hover:text-white px-2 py-2 text-left flex items-center gap-2 group transition-colors rounded-sm" onclick="selectNavTab('animation', 'icons/Animation.png', 'https://win98icons.alexmeub.com/icons/png/directory_closed-4.png', 'Animation'); toggleStartMenu();">
+                    <img src="icons/Animation.png" onerror="this.onerror=null; this.src='https://win98icons.alexmeub.com/icons/png/directory_closed-4.png';" class="w-8 h-8 start-icon-img group-hover:drop-shadow-md">
                     <div class="flex flex-col leading-tight">
                         <span class="font-bold text-sm text-[#333] group-hover:text-white">Animation</span>
                         <span class="text-[10px] text-gray-500 group-hover:text-[#b3d4ff]">Project Gallery</span>
                     </div>
                 </button>
-                <button class="hover:bg-[#2F71CD] hover:text-white px-2 py-2 text-left flex items-center gap-2 group transition-colors rounded-sm" onclick="selectNavTab('illustration', 'https://icons.iconarchive.com/icons/microsoft/windows-xp/16/Folder-Closed-icon.png', 'Illustration'); toggleStartMenu();">
-                    <img src="icons/Illustration.png" onerror="this.onerror=null; this.src='https://icons.iconarchive.com/icons/microsoft/windows-xp/48/Folder-Closed-icon.png';" class="w-8 h-8 start-icon-img group-hover:drop-shadow-md">
+                <button class="hover:bg-[#2F71CD] hover:text-white px-2 py-2 text-left flex items-center gap-2 group transition-colors rounded-sm" onclick="selectNavTab('illustration', 'icons/Illustration.png', 'https://win98icons.alexmeub.com/icons/png/directory_closed-4.png', 'Illustration'); toggleStartMenu();">
+                    <img src="icons/Illustration.png" onerror="this.onerror=null; this.src='https://win98icons.alexmeub.com/icons/png/directory_closed-4.png';" class="w-8 h-8 start-icon-img group-hover:drop-shadow-md">
                     <div class="flex flex-col leading-tight">
                         <span class="font-bold text-sm text-[#333] group-hover:text-white">Illustration</span>
                         <span class="text-[10px] text-gray-500 group-hover:text-[#b3d4ff]">Image Gallery</span>
                     </div>
                 </button>
-                <button class="hover:bg-[#2F71CD] hover:text-white px-2 py-2 text-left flex items-center gap-2 group transition-colors rounded-sm" onclick="selectNavTab('games', 'https://icons.iconarchive.com/icons/microsoft/windows-xp/16/Folder-Closed-icon.png', 'Games'); toggleStartMenu();">
-                    <img src="icons/Games.png" onerror="this.onerror=null; this.src='https://icons.iconarchive.com/icons/microsoft/windows-xp/48/Folder-Closed-icon.png';" class="w-8 h-8 start-icon-img group-hover:drop-shadow-md">
+                <button class="hover:bg-[#2F71CD] hover:text-white px-2 py-2 text-left flex items-center gap-2 group transition-colors rounded-sm" onclick="selectNavTab('games', 'icons/Games.png', 'https://win98icons.alexmeub.com/icons/png/directory_closed-4.png', 'Games'); toggleStartMenu();">
+                    <img src="icons/Games.png" onerror="this.onerror=null; this.src='https://win98icons.alexmeub.com/icons/png/directory_closed-4.png';" class="w-8 h-8 start-icon-img group-hover:drop-shadow-md">
                     <div class="flex flex-col leading-tight">
                         <span class="font-bold text-sm text-[#333] group-hover:text-white">Games</span>
                         <span class="text-[10px] text-gray-500 group-hover:text-[#b3d4ff]">Playable Games</span>
                     </div>
                 </button>
-                <button class="hover:bg-[#2F71CD] hover:text-white px-2 py-2 text-left flex items-center gap-2 group transition-colors rounded-sm" onclick="selectNavTab('info', 'https://win98icons.alexmeub.com/icons/png/notepad_file-0.png', 'Info'); toggleStartMenu();">
+                <button class="hover:bg-[#2F71CD] hover:text-white px-2 py-2 text-left flex items-center gap-2 group transition-colors rounded-sm" onclick="selectNavTab('info', 'icons/info.png', 'https://win98icons.alexmeub.com/icons/png/notepad_file-0.png', 'Info'); toggleStartMenu();">
                     <img src="icons/info.png" onerror="this.onerror=null; this.src='https://win98icons.alexmeub.com/icons/png/notepad_file-0.png';" class="w-8 h-8 start-icon-img group-hover:drop-shadow-md">
                     <div class="flex flex-col leading-tight">
                         <span class="font-bold text-sm text-[#333] group-hover:text-white">Info</span>
@@ -717,13 +740,13 @@
             dropdown.classList.toggle('hidden');
         }
 
-        function selectNavTab(tabId, iconSrc, addressPath) {
+        function selectNavTab(tabId, localIconSrc, fallbackIconSrc, addressPath) {
             document.getElementById('address-dropdown').classList.add('hidden');
             restoreWindow();
-            showTab(tabId, iconSrc, addressPath);
+            showTab(tabId, localIconSrc, fallbackIconSrc, addressPath);
         }
 
-        function showTab(tabId, iconSrc, addressPath) {
+        function showTab(tabId, localIconSrc, fallbackIconSrc, addressPath) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
             document.getElementById(tabId).classList.remove('hidden');
 
@@ -734,8 +757,14 @@
             }
 
             const addrIcon = document.getElementById('address-icon');
-            if (iconSrc) {
-                addrIcon.setAttribute('src', iconSrc);
+            if (localIconSrc) {
+                addrIcon.src = localIconSrc;
+                if(fallbackIconSrc) {
+                    addrIcon.onerror = function() {
+                        this.onerror = null;
+                        this.src = fallbackIconSrc;
+                    };
+                }
             }
             
             const cleanPath = addressPath || tabId.charAt(0).toUpperCase() + tabId.slice(1);
@@ -1393,6 +1422,7 @@
         let isChalking = false;
         let chalkActive = false;
         let chalkColor = 'rgba(255, 255, 255, 0.9)';
+        let lastWiggleTime = Date.now();
 
         function resizeChalkCanvas() {
             chalkCanvas.width = window.innerWidth;
@@ -1418,6 +1448,7 @@
         chalkCanvas.addEventListener('mousedown', (e) => startChalkDraw(e.clientX, e.clientY));
         chalkCanvas.addEventListener('mousemove', (e) => moveChalkDraw(e.clientX, e.clientY));
         chalkCanvas.addEventListener('mouseup', stopChalking);
+        chalkCanvas.addEventListener('mouseleave', stopChalking);
 
         chalkCanvas.addEventListener('touchstart', (e) => {
             if (e.touches.length > 0) startChalkDraw(e.touches[0].clientX, e.touches[0].clientY);
@@ -1428,9 +1459,18 @@
             e.preventDefault();
         }, {passive: false});
         chalkCanvas.addEventListener('touchend', stopChalking);
+        chalkCanvas.addEventListener('touchcancel', stopChalking);
 
         function animateChalk() {
             chalkCtx.clearRect(0, 0, chalkCanvas.width, chalkCanvas.height);
+            
+            let now = Date.now();
+            let updateWiggle = false;
+            if (now - lastWiggleTime > 125) {
+                updateWiggle = true;
+                lastWiggleTime = now;
+            }
+            
             chalkCtx.lineWidth = 4;
             chalkCtx.lineCap = 'round';
             chalkCtx.lineJoin = 'round';
@@ -1441,8 +1481,17 @@
                 chalkCtx.beginPath();
                 for (let i = 0; i < strokeObj.points.length; i++) {
                     let pt = strokeObj.points[i];
-                    if (i === 0) chalkCtx.moveTo(pt.x, pt.y);
-                    else chalkCtx.lineTo(pt.x, pt.y);
+                    
+                    if (updateWiggle) {
+                        pt.wx = pt.x + (Math.random() - 0.5) * 5;
+                        pt.wy = pt.y + (Math.random() - 0.5) * 5;
+                    }
+                    
+                    let drawX = pt.wx !== undefined ? pt.wx : pt.x;
+                    let drawY = pt.wy !== undefined ? pt.wy : pt.y;
+                    
+                    if (i === 0) chalkCtx.moveTo(drawX, drawY);
+                    else chalkCtx.lineTo(drawX, drawY);
                 }
                 chalkCtx.stroke();
             });
