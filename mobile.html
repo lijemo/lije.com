@@ -126,7 +126,7 @@
             --nav-icon-scale: 2;
             --start-icon-scale: 1.875;
             --address-icon-scale: 1.75;
-            --dropdown-icon-scale: 2.3;
+            --dropdown-icon-scale: 2;
             --text-shadow-spread: 4px;
             --text-shadow-opacity: 0.9;
             --power-icon-scale: 1.8;
@@ -190,20 +190,6 @@
     </style>
 </head>
 <body class="h-screen w-screen relative overflow-hidden">
-
-    <!-- Debug Slider for Local Icons -->
-    <div id="debug-panel" class="fixed top-[20px] right-[20px] bg-[#ece9d8] border-[3px] border-[#0055e5] p-2 z-[9999999] shadow-lg rounded text-xs font-['Tahoma'] flex flex-col gap-1 items-center">
-        <b>Local Icon Size</b>
-        <input type="range" id="debug-scale-slider" min="0.5" max="5" step="0.1" value="2.3" oninput="updateLocalIconScale(this.value)">
-        <span id="debug-scale-val" class="font-bold">2.3x</span>
-    </div>
-    
-    <script>
-        function updateLocalIconScale(val) {
-            document.getElementById('debug-scale-val').textContent = val + 'x';
-            document.documentElement.style.setProperty('--dropdown-icon-scale', val);
-        }
-    </script>
 
     <!-- Boot Loader Screen -->
     <div id="boot-wrapper" class="fixed inset-0 z-[1000000] bg-white flex items-center justify-center">
@@ -1174,8 +1160,8 @@
             let vy = -4;
             const gravity = 0.4;
             const bounce = -0.8;
-            const cardWidth = 40.5;
-            const cardHeight = 55.5;
+            const cardWidth = 40.5 * 1.5;
+            const cardHeight = 55.5 * 1.5;
             
             const suits = ['♥', '♦', '♣', '♠'];
             const colors = ['red', 'red', 'black', 'black'];
@@ -1191,18 +1177,18 @@
             function animate() {
                 ctx.fillStyle = 'white';
                 ctx.strokeStyle = 'black';
-                ctx.lineWidth = 1.5;
+                ctx.lineWidth = 1.5 * 1.25;
                 
                 ctx.beginPath();
-                ctx.roundRect(x, y, cardWidth, cardHeight, 3);
+                ctx.roundRect(x, y, cardWidth, cardHeight, 3 * 1.5);
                 ctx.fill();
                 ctx.stroke();
 
                 ctx.fillStyle = color;
-                ctx.font = 'bold 10.5px "Times New Roman"';
-                ctx.fillText(rank, x + 3, y + 12);
-                ctx.font = '22.5px "Times New Roman"';
-                ctx.fillText(suit, x + 12, y + 37.5);
+                ctx.font = 'bold 15.75px "Times New Roman"';
+                ctx.fillText(rank, x + 4.5, y + 18);
+                ctx.font = '33.75px "Times New Roman"';
+                ctx.fillText(suit, x + 18, y + 56.25);
 
                 vy += gravity;
                 x += vx;
@@ -1231,14 +1217,14 @@
         let bubblesAnimationId = null;
 
         let bubbleCfg = {
-            speed: 0.5,
-            size: 60,
+            speed: 0.75, // Increased by 50% (from 0.5 to 0.75)
+            size: 45,    // 75% of 60
             centerAlpha: 0.05,
             edgeSpread: 0.85,
             highlightLength: 0.04,
             highlightThickness: 5.5,
             outline: 1,
-            max: 30
+            max: 10      // Capped at 10
         };
 
         function startBubbles() {
@@ -1275,7 +1261,7 @@
                     // Spawn near the bottom left, slightly spread out
                     this.radius = bubbleCfg.size; 
                     this.x = this.radius + Math.random() * (canvas.width * 0.3);
-                    this.y = canvas.height + this.radius;
+                    this.y = canvas.height - this.radius - 10;
                     
                     // Fixed initial speed to prevent velocity buildup
                     let angle = -Math.PI/2 + (Math.random() * 0.5 - 0.25); // General upward spread
@@ -1506,21 +1492,36 @@
                 const ground = window.innerHeight - 35 - bRadius * 2;
                 const rightWall = window.innerWidth - bRadius * 2;
 
+                let bounced = false;
+
                 if (by > ground) {
                     by = ground;
                     bvy *= ballBounce;
                     bvx *= 0.98;
+                    if (Math.abs(bvy) > 1.5) bounced = true;
                 } else if (by < 0) {
                     by = 0;
                     bvy *= ballBounce;
+                    bounced = true;
                 }
 
                 if (bx > rightWall) {
                     bx = rightWall;
                     bvx *= ballBounce;
+                    bounced = true;
                 } else if (bx < 0) {
                     bx = 0;
                     bvx *= ballBounce;
+                    bounced = true;
+                }
+
+                if (bounced) {
+                    const bounceSound = ballAudio.cloneNode();
+                    bounceSound.preservesPitch = false;
+                    bounceSound.mozPreservesPitch = false;
+                    bounceSound.webkitPreservesPitch = false;
+                    bounceSound.playbackRate = 0.95 + Math.random() * 0.1;
+                    bounceSound.play().catch(() => {});
                 }
             }
 
@@ -1582,6 +1583,7 @@
         let isChalking = false;
         let chalkActive = false;
         let chalkColor = 'rgba(255, 255, 255, 0.9)';
+        let lastWiggleTime = Date.now();
 
         function resizeChalkCanvas() {
             chalkCanvas.width = window.innerWidth;
@@ -1623,6 +1625,13 @@
         function animateChalk() {
             chalkCtx.clearRect(0, 0, chalkCanvas.width, chalkCanvas.height);
             
+            let now = Date.now();
+            let updateWiggle = false;
+            if (now - lastWiggleTime > 125) {
+                updateWiggle = true;
+                lastWiggleTime = now;
+            }
+            
             chalkCtx.lineWidth = 4;
             chalkCtx.lineCap = 'round';
             chalkCtx.lineJoin = 'round';
@@ -1634,8 +1643,16 @@
                 for (let i = 0; i < strokeObj.points.length; i++) {
                     let pt = strokeObj.points[i];
                     
-                    if (i === 0) chalkCtx.moveTo(pt.x, pt.y);
-                    else chalkCtx.lineTo(pt.x, pt.y);
+                    if (updateWiggle) {
+                        pt.wx = pt.x + (Math.random() - 0.5) * 5;
+                        pt.wy = pt.y + (Math.random() - 0.5) * 5;
+                    }
+                    
+                    let drawX = pt.wx !== undefined ? pt.wx : pt.x;
+                    let drawY = pt.wy !== undefined ? pt.wy : pt.y;
+                    
+                    if (i === 0) chalkCtx.moveTo(drawX, drawY);
+                    else chalkCtx.lineTo(drawX, drawY);
                 }
                 chalkCtx.stroke();
             });
