@@ -126,7 +126,7 @@
             --nav-icon-scale: 2;
             --start-icon-scale: 1.875;
             --address-icon-scale: 1.75;
-            --dropdown-icon-scale: 1.5;
+            --dropdown-icon-scale: 2.3;
             --text-shadow-spread: 4px;
             --text-shadow-opacity: 0.9;
             --power-icon-scale: 1.8;
@@ -194,17 +194,13 @@
     <!-- Debug Slider for Local Icons -->
     <div id="debug-panel" class="fixed top-[20px] right-[20px] bg-[#ece9d8] border-[3px] border-[#0055e5] p-2 z-[9999999] shadow-lg rounded text-xs font-['Tahoma'] flex flex-col gap-1 items-center">
         <b>Local Icon Size</b>
-        <input type="range" id="debug-scale-slider" min="0.5" max="5" step="0.1" value="2" oninput="updateLocalIconScale(this.value)">
-        <span id="debug-scale-val" class="font-bold">2.0x</span>
+        <input type="range" id="debug-scale-slider" min="0.5" max="5" step="0.1" value="2.3" oninput="updateLocalIconScale(this.value)">
+        <span id="debug-scale-val" class="font-bold">2.3x</span>
     </div>
     
     <script>
         function updateLocalIconScale(val) {
             document.getElementById('debug-scale-val').textContent = val + 'x';
-            document.documentElement.style.setProperty('--desktop-icon-scale', val);
-            document.documentElement.style.setProperty('--nav-icon-scale', val);
-            document.documentElement.style.setProperty('--start-icon-scale', val);
-            document.documentElement.style.setProperty('--address-icon-scale', val);
             document.documentElement.style.setProperty('--dropdown-icon-scale', val);
         }
     </script>
@@ -1178,8 +1174,8 @@
             let vy = -4;
             const gravity = 0.4;
             const bounce = -0.8;
-            const cardWidth = 27;
-            const cardHeight = 37;
+            const cardWidth = 40.5;
+            const cardHeight = 55.5;
             
             const suits = ['♥', '♦', '♣', '♠'];
             const colors = ['red', 'red', 'black', 'black'];
@@ -1195,18 +1191,18 @@
             function animate() {
                 ctx.fillStyle = 'white';
                 ctx.strokeStyle = 'black';
-                ctx.lineWidth = 1;
+                ctx.lineWidth = 1.5;
                 
                 ctx.beginPath();
-                ctx.roundRect(x, y, cardWidth, cardHeight, 2);
+                ctx.roundRect(x, y, cardWidth, cardHeight, 3);
                 ctx.fill();
                 ctx.stroke();
 
                 ctx.fillStyle = color;
-                ctx.font = 'bold 7px "Times New Roman"';
-                ctx.fillText(rank, x + 2, y + 8);
-                ctx.font = '15px "Times New Roman"';
-                ctx.fillText(suit, x + 8, y + 25);
+                ctx.font = 'bold 10.5px "Times New Roman"';
+                ctx.fillText(rank, x + 3, y + 12);
+                ctx.font = '22.5px "Times New Roman"';
+                ctx.fillText(suit, x + 12, y + 37.5);
 
                 vy += gravity;
                 x += vx;
@@ -1227,19 +1223,37 @@
             animate();
         }
 
-        // BUBBLES
+        // ==========================================
+        // BUBBLES SCREENSAVER LOGIC
+        // ==========================================
+        let bubblesInterval = null;
         let activeBubbles = [];
         let bubblesAnimationId = null;
 
+        let bubbleCfg = {
+            speed: 0.5,
+            size: 60,
+            centerAlpha: 0.05,
+            edgeSpread: 0.85,
+            highlightLength: 0.04,
+            highlightThickness: 5.5,
+            outline: 1,
+            max: 30
+        };
+
         function startBubbles() {
             if (bubblesAnimationId) {
+                // If running, stop it
                 cancelAnimationFrame(bubblesAnimationId);
+                clearInterval(bubblesInterval);
                 bubblesAnimationId = null;
+                bubblesInterval = null;
                 activeBubbles = [];
                 const canvas = document.getElementById('bubbles-canvas');
                 const ctx = canvas.getContext('2d');
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
             } else {
+                // Start it
                 initBubbles();
             }
         }
@@ -1255,46 +1269,192 @@
             window.addEventListener('resize', resizeCanvas);
             resizeCanvas();
 
+            // Bubble class
             class Bubble {
                 constructor() {
-                    this.radius = 30; 
-                    this.x = this.radius + Math.random() * (canvas.width * 0.5);
-                    this.y = canvas.height - this.radius - 1;
-                    let angle = -Math.PI/2 + (Math.random() * 0.5 - 0.25);
-                    let baseSpeed = 2;
+                    // Spawn near the bottom left, slightly spread out
+                    this.radius = bubbleCfg.size; 
+                    this.x = this.radius + Math.random() * (canvas.width * 0.3);
+                    this.y = canvas.height + this.radius;
+                    
+                    // Fixed initial speed to prevent velocity buildup
+                    let angle = -Math.PI/2 + (Math.random() * 0.5 - 0.25); // General upward spread
+                    let baseSpeed = 2.5;
                     this.vx = Math.cos(angle) * baseSpeed; 
                     this.vy = Math.sin(angle) * baseSpeed;
+                    
+                    // Colors
                     this.hue = Math.random() * 360;
+
+                    // Cache canvas for performance (eliminates lag by rendering gradient once)
+                    this.cacheCanvas = document.createElement('canvas');
+                    const pad = bubbleCfg.outline + bubbleCfg.highlightThickness + 2;
+                    this.cacheCanvas.width = this.radius * 2 + pad * 2;
+                    this.cacheCanvas.height = this.radius * 2 + pad * 2;
+                    this.cacheCtx = this.cacheCanvas.getContext('2d');
+                    this.renderCache();
+                }
+
+                renderCache() {
+                    const cx = this.cacheCanvas.width / 2;
+                    const cy = this.cacheCanvas.height / 2;
+                    
+                    this.cacheCtx.beginPath();
+                    this.cacheCtx.arc(cx, cy, this.radius, 0, Math.PI * 2);
+                    
+                    const gradient = this.cacheCtx.createRadialGradient(cx, cy, 0, cx, cy, this.radius);
+                    
+                    gradient.addColorStop(0, `hsla(${this.hue}, 80%, 50%, ${bubbleCfg.centerAlpha})`);
+                    gradient.addColorStop(bubbleCfg.edgeSpread, `hsla(${this.hue}, 80%, 50%, ${bubbleCfg.centerAlpha + 0.02})`);
+                    gradient.addColorStop(0.95, `hsla(${this.hue}, 100%, 60%, 0.4)`);
+                    gradient.addColorStop(1, `hsla(${this.hue}, 100%, 80%, 0.7)`);
+                    
+                    this.cacheCtx.fillStyle = gradient;
+                    this.cacheCtx.fill();
+                    
+                    if (bubbleCfg.outline > 0) {
+                        this.cacheCtx.lineWidth = bubbleCfg.outline;
+                        this.cacheCtx.strokeStyle = `hsla(${this.hue}, 100%, 80%, 0.8)`;
+                        this.cacheCtx.stroke();
+                    }
+
+                    if (bubbleCfg.highlightLength > 0) {
+                        this.cacheCtx.beginPath();
+                        const startAngle = Math.PI * 1.25 - (bubbleCfg.highlightLength * Math.PI);
+                        const endAngle = Math.PI * 1.25 + (bubbleCfg.highlightLength * Math.PI);
+                        this.cacheCtx.arc(cx, cy, this.radius * 0.88, startAngle, endAngle);
+                        this.cacheCtx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
+                        this.cacheCtx.lineWidth = bubbleCfg.highlightThickness;
+                        this.cacheCtx.lineCap = 'round';
+                        this.cacheCtx.stroke();
+                    }
                 }
 
                 draw() {
-                    ctx.beginPath();
-                    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-                    ctx.fillStyle = `hsla(${this.hue}, 80%, 60%, 0.4)`;
-                    ctx.fill();
-                    ctx.strokeStyle = `hsla(${this.hue}, 100%, 80%, 0.8)`;
-                    ctx.stroke();
+                    const cx = this.cacheCanvas.width / 2;
+                    const cy = this.cacheCanvas.height / 2;
+                    // Draw the pre-rendered image instead of calculating gradients every frame
+                    ctx.drawImage(this.cacheCanvas, this.x - cx, this.y - cy);
                 }
 
                 update() {
-                    this.x += this.vx;
-                    this.y += this.vy;
+                    this.radius = bubbleCfg.size; // Sync size dynamically
 
-                    if (this.x - this.radius < 0 || this.x + this.radius > canvas.width) this.vx *= -1;
-                    if (this.y - this.radius < 0 || this.y + this.radius > canvas.height) this.vy *= -1;
+                    this.x += this.vx * bubbleCfg.speed;
+                    this.y += this.vy * bubbleCfg.speed;
+
+                    // Wall collisions
+                    if (this.x - this.radius < 0) {
+                        this.x = this.radius;
+                        this.vx *= -1;
+                    } else if (this.x + this.radius > canvas.width) {
+                        this.x = canvas.width - this.radius;
+                        this.vx *= -1;
+                    }
+
+                    // Ceiling collision (bounce off top)
+                    if (this.y - this.radius < 0) {
+                        this.y = this.radius;
+                        this.vy *= -1;
+                    }
+
+                    // Floor collision (bounce off taskbar area, but only if it's already above it)
+                    // (prevents immediate bouncing when spawning from below)
+                    if (this.y + this.radius > canvas.height && this.vy > 0) {
+                        this.y = canvas.height - this.radius;
+                        this.vy *= -1;
+                    }
                 }
             }
 
-            for(let i=0; i<10; i++) activeBubbles.push(new Bubble());
+            // Spawn a new bubble every second (up to a limit to prevent lag)
+            bubblesInterval = setInterval(() => {
+                if (activeBubbles.length < bubbleCfg.max) {
+                    activeBubbles.push(new Bubble());
+                }
+            }, 1000);
+
+            // Simple Circle Collision Logic
+            function resolveCollisions() {
+                for (let i = 0; i < activeBubbles.length; i++) {
+                    for (let j = i + 1; j < activeBubbles.length; j++) {
+                        let b1 = activeBubbles[i];
+                        let b2 = activeBubbles[j];
+                        
+                        let dx = b2.x - b1.x;
+                        let dy = b2.y - b1.y;
+                        let distance = Math.sqrt(dx * dx + dy * dy);
+                        let minDist = b1.radius + b2.radius;
+
+                        if (distance < minDist) {
+                            // Calculate angle, sine, and cosine
+                            let angle = Math.atan2(dy, dx);
+                            let sin = Math.sin(angle);
+                            let cos = Math.cos(angle);
+
+                            // Rotate velocities
+                            let vx1 = b1.vx * cos + b1.vy * sin;
+                            let vy1 = b1.vy * cos - b1.vx * sin;
+                            let vx2 = b2.vx * cos + b2.vy * sin;
+                            let vy2 = b2.vy * cos - b2.vx * sin;
+
+                            // Swap velocities (elastic collision assuming equal mass)
+                            let finalVx1 = vx2;
+                            let finalVx2 = vx1;
+
+                            // Rotate velocities back
+                            b1.vx = finalVx1 * cos - vy1 * sin;
+                            b1.vy = vy1 * cos + finalVx1 * sin;
+                            b2.vx = finalVx2 * cos - vy2 * sin;
+                            b2.vy = vy2 * cos + finalVx2 * sin;
+
+                            // CONSTANT SPEED ENFORCEMENT
+                            // Prevents bubbles from infinitely speeding up or stalling out
+                            let baseSpeed = 2.5;
+                            let mag1 = Math.sqrt(b1.vx * b1.vx + b1.vy * b1.vy);
+                            if (mag1 > 0) { b1.vx = (b1.vx / mag1) * baseSpeed; b1.vy = (b1.vy / mag1) * baseSpeed; }
+                            let mag2 = Math.sqrt(b2.vx * b2.vx + b2.vy * b2.vy);
+                            if (mag2 > 0) { b2.vx = (b2.vx / mag2) * baseSpeed; b2.vy = (b2.vy / mag2) * baseSpeed; }
+                            
+                            // Prevent overlapping by pushing them apart slightly
+                            let overlap = (minDist - distance) / 2;
+                            let pushX = Math.cos(angle) * overlap;
+                            let pushY = Math.sin(angle) * overlap;
+                            
+                            b1.x -= pushX;
+                            b1.y -= pushY;
+                            b2.x += pushX;
+                            b2.y += pushY;
+                        }
+                    }
+                }
+            }
 
             function animate() {
+                // Clear with a very slight fade effect for a softer look
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
-                for (let b of activeBubbles) {
+                
+                // Enforce max count dynamically
+                if (activeBubbles.length > bubbleCfg.max) {
+                    activeBubbles.splice(bubbleCfg.max);
+                }
+
+                resolveCollisions();
+
+                for (let i = activeBubbles.length - 1; i >= 0; i--) {
+                    let b = activeBubbles[i];
                     b.update();
                     b.draw();
+                    
+                    // Remove if it somehow gets stuck way off screen
+                    if (b.x < -100 || b.x > canvas.width + 100 || b.y < -100) {
+                        activeBubbles.splice(i, 1);
+                    }
                 }
+
                 bubblesAnimationId = requestAnimationFrame(animate);
             }
+
             animate();
         }
 
@@ -1422,7 +1582,6 @@
         let isChalking = false;
         let chalkActive = false;
         let chalkColor = 'rgba(255, 255, 255, 0.9)';
-        let lastWiggleTime = Date.now();
 
         function resizeChalkCanvas() {
             chalkCanvas.width = window.innerWidth;
@@ -1464,13 +1623,6 @@
         function animateChalk() {
             chalkCtx.clearRect(0, 0, chalkCanvas.width, chalkCanvas.height);
             
-            let now = Date.now();
-            let updateWiggle = false;
-            if (now - lastWiggleTime > 125) {
-                updateWiggle = true;
-                lastWiggleTime = now;
-            }
-            
             chalkCtx.lineWidth = 4;
             chalkCtx.lineCap = 'round';
             chalkCtx.lineJoin = 'round';
@@ -1482,16 +1634,8 @@
                 for (let i = 0; i < strokeObj.points.length; i++) {
                     let pt = strokeObj.points[i];
                     
-                    if (updateWiggle) {
-                        pt.wx = pt.x + (Math.random() - 0.5) * 5;
-                        pt.wy = pt.y + (Math.random() - 0.5) * 5;
-                    }
-                    
-                    let drawX = pt.wx !== undefined ? pt.wx : pt.x;
-                    let drawY = pt.wy !== undefined ? pt.wy : pt.y;
-                    
-                    if (i === 0) chalkCtx.moveTo(drawX, drawY);
-                    else chalkCtx.lineTo(drawX, drawY);
+                    if (i === 0) chalkCtx.moveTo(pt.x, pt.y);
+                    else chalkCtx.lineTo(pt.x, pt.y);
                 }
                 chalkCtx.stroke();
             });
