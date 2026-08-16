@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lije Morgan - CV</title>
+    <style>
+        :root {
+            --cv-min-width: 750px;
+        }
+        body {
+            background-color: white;
+            margin: 0;
+            padding: 2vw;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 1vw;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+            /* Allows images to sit side-by-side dynamically */
+            flex: 0 1 calc(50% - 1vw);
+            /* Forces them to stack if the window gets too small */
+            min-width: var(--cv-min-width); 
+            border: 1px solid #eee; /* Very faint border to separate white pages from white background */
+        }
+    </style>
+</head>
+<body>
+    <img src="images/LijeMorgan_CV1.jpg" alt="CV Page 1">
+    <img src="images/LijeMorgan_CV2.jpg" alt="CV Page 2">
+</body>
+</html>
