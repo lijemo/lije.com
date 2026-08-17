@@ -36,6 +36,14 @@
         .desktop-icon { opacity: 0; }
         .pop-in { animation: popIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
 
+        .keygen-marquee-track {
+            animation: keygenScroll 12s linear infinite;
+        }
+        @keyframes keygenScroll {
+            from { transform: translateX(0); }
+            to { transform: translateX(-50%); }
+        }
+
         * { 
             font-family: inherit; 
             box-sizing: border-box;
@@ -512,6 +520,15 @@
                             </div>
                         </div>
 
+                        <div class="flex flex-col cursor-pointer group portfolio-item border border-transparent hover:border-[#316ac5] hover:bg-[#e5f3fb] p-2 rounded transition-colors" onclick="openVideoModal('Debt Quest', 'le9DJjreCjE')">
+                            <div class="w-full aspect-video bg-black border border-gray-400 flex flex-col items-center justify-center text-white overflow-hidden relative shadow-sm">
+                                <img src="https://img.youtube.com/vi/le9DJjreCjE/maxresdefault.jpg" onerror="this.onerror=null; this.src='https://img.youtube.com/vi/le9DJjreCjE/hqdefault.jpg';" class="w-full h-full object-cover">
+                            </div>
+                            <div class="text-center mt-1 md:mt-2">
+                                <p class="text-xs text-black group-hover:text-white group-hover:bg-[#316ac5] px-1 rounded-sm inline-block">Debt Quest</p>
+                            </div>
+                        </div>
+
                         <div class="flex flex-col cursor-pointer group portfolio-item border border-transparent hover:border-[#316ac5] hover:bg-[#e5f3fb] p-2 rounded transition-colors" onclick="openVideoModal('Interdimensional Pizza Pushers', 'JiwSzz0PwAw')">
                             <div class="w-full aspect-video bg-black border border-gray-400 flex flex-col items-center justify-center text-white overflow-hidden relative shadow-sm">
                                 <img src="https://img.youtube.com/vi/JiwSzz0PwAw/maxresdefault.jpg" onerror="this.onerror=null; this.src='https://img.youtube.com/vi/JiwSzz0PwAw/hqdefault.jpg';" class="w-full h-full object-cover">
@@ -552,9 +569,22 @@
                             <img src="games/UnderwaterPlasticPickup_Info.jpg" alt="Underwater Plastic Pickup Info" class="object-contain w-full md:w-[70%] flex-shrink-0">
                         </div>
 
-                        <a href="games/MinigameDungeon.png" target="_blank" rel="noopener noreferrer" class="flex flex-col md:flex-row items-center justify-center gap-3 md:gap-4 portfolio-item w-full cursor-pointer hover:opacity-90 transition-opacity">
-                            <img src="games/MinigameDungeon.png" alt="Minigame Dungeon" class="object-contain w-full md:w-[70%] flex-shrink-0">
+                        <a href="games/MinigameDungeon.png" target="_blank" rel="noopener noreferrer" id="minigame-dungeon-link" class="flex flex-col md:flex-row items-center justify-center gap-3 md:gap-4 portfolio-item w-full cursor-pointer hover:opacity-90 transition-opacity">
+                            <img id="minigame-dungeon-img" src="games/MinigameDungeon.png" alt="Minigame Dungeon" class="object-contain w-full flex-shrink-0" style="--minigame-width: 70%;">
                         </a>
+
+                        <!-- DEBUG: Minigame Dungeon width slider (remove once value is baked in) -->
+                        <div id="minigame-debug-panel" class="fixed bottom-[45px] right-2 md:right-4 z-[200002] bg-[#ece9d8] border-2 border-[#0055e5] rounded shadow-lg p-2 md:p-3 text-xs font-['Tahoma'] text-black flex flex-col gap-1 w-[220px]">
+                            <div class="font-bold">Minigame Dungeon width (debug)</div>
+                            <div class="flex items-center gap-2">
+                                <input type="range" id="minigame-width-slider" min="10" max="100" value="70" class="flex-grow" oninput="document.getElementById('minigame-dungeon-img').style.setProperty('--minigame-width', this.value + '%'); document.getElementById('minigame-width-value').textContent = this.value + '%';">
+                                <span id="minigame-width-value" class="w-10 text-right">70%</span>
+                            </div>
+                        </div>
+                        <style>
+                            #minigame-dungeon-img { width: var(--minigame-width, 70%); }
+                            @media (max-width: 767px) { #minigame-dungeon-img { width: 100%; } }
+                        </style>
                     </div>
                 </div>
 
@@ -615,7 +645,7 @@
             </div>
             <div class="flex-grow flex items-center justify-center overflow-hidden">
                 <div class="bg-white p-1 md:p-[10px] border border-[#aca899] shadow-inner shrink">
-                    <img id="modal-image-element" src="" alt="Illustration" class="block w-auto h-auto max-w-[80vw] md:max-w-[calc(90vw-60px)] max-h-[70vh] md:max-h-[calc(90vh-120px)] object-contain">
+                    <img id="modal-image-element" src="" alt="" class="block w-auto h-auto max-w-[80vw] md:max-w-[calc(90vw-60px)] max-h-[70vh] md:max-h-[calc(90vh-120px)] object-contain">
                 </div>
             </div>
         </div>
@@ -642,9 +672,11 @@
                 <div class="border border-[#00ff00] p-2 mb-3 w-full text-center tracking-widest bg-[#0a200a]" id="serial-output">XXXX-XXXX-XXXX-XXXX</div>
                 <button class="bg-[#c0c0c0] border-t-2 border-l-2 border-white border-b-2 border-r-2 border-black text-black px-4 py-1 font-bold text-xs md:text-sm hover:active:border-t-black hover:active:border-l-black hover:active:border-b-white hover:active:border-r-white" onclick="generateSerial()">GENERATE</button>
             </div>
-            <marquee class="hidden md:block w-full text-white bg-[#000080] border border-gray-700 p-1 mt-2 tracking-widest" scrollamount="3">
-                CRACKED BY THE CORE TEAM - ENJOY THIS FINE RELEASE!
-            </marquee>
+            <div class="hidden md:block w-full text-white bg-[#000080] border border-gray-700 p-1 mt-2 tracking-widest overflow-hidden whitespace-nowrap">
+                <div class="inline-flex keygen-marquee-track">
+                    <span>KEY_01_2319&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;KEY_02_5453&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;KEY_03_9494&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;KEY_04_7651&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span>KEY_01_2319&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;KEY_02_5453&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;KEY_03_9494&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;KEY_04_7651&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -776,7 +808,7 @@
 
             <!-- Paint Taskbar Item -->
             <button id="taskbar-chalk-tab" class="hidden xp-taskbar-btn active px-2 md:px-3 py-1 flex items-center gap-1 md:gap-2 text-xs md:text-sm font-bold min-w-[40px] md:min-w-[50px] max-w-[180px] md:max-w-[220px] text-left flex-shrink" onclick="toggleChalkMenu()">
-                <img src="https://icons.iconarchive.com/icons/microsoft/windows-xp/32/Paint-icon.png" class="h-3.5 md:h-4 drop-shadow-sm flex-shrink-0"> 
+                <img src="icons/Paint.png" onerror="this.onerror=null; this.src='https://icons.iconarchive.com/icons/microsoft/windows-xp/32/Paint-icon.png';" class="h-3.5 md:h-4 drop-shadow-sm flex-shrink-0"> 
                 <span class="truncate pr-1 md:pr-2 block w-full text-white">Paint.exe</span>
             </button>
         </div>
@@ -1333,6 +1365,7 @@
             modal.style.opacity = '0';
             modal.classList.remove('hidden');
             modalTitle.innerHTML = `<span class="text-xs">🖼️</span> ${title}`;
+            imgElement.alt = title;
             
             let modalShown = false;
             const showModalAndCenter = () => {
