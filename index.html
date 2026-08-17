@@ -3,8 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Lije Morgan - Portfolio</title>
-    
+    <title>lije.com</title>
+
+    <meta name="description" content="Lije Morgan is an artist and educator working in 3D, animation, and game design. This is an interactive portfolio.">
+    <link rel="canonical" href="https://lije.com/">
+
+    <!-- Open Graph (Facebook, LinkedIn, Slack, iMessage, etc.) -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://lije.com/">
+    <meta property="og:site_name" content="lije.com">
+    <meta property="og:title" content="Lije Morgan - Portfolio">
+    <meta property="og:description" content="Lije Morgan is an artist and educator working in 3D, animation, and game design. This is an interactive portfolio.">
+    <meta property="og:image" content="https://lije.com/images/og-image.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+
+    <!-- Twitter/X Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Lije Morgan - Portfolio">
+    <meta name="twitter:description" content="Lije Morgan is an artist and educator working in 3D, animation, and game design. This is an interactive portfolio.">
+    <meta name="twitter:image" content="https://lije.com/images/og-image.png">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/favicon.png">
+    <link rel="apple-touch-icon" href="/favicon.png">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @font-face {
@@ -453,6 +476,22 @@
                 <!-- Reel Tab -->
                 <div id="reel" class="tab-content h-full w-full flex items-center justify-center bg-black md:bg-white md:p-3 overflow-hidden">
                     <iframe id="vimeo-player" data-src="https://player.vimeo.com/video/285639811?autoplay=1&loop=1&background=1" class="w-full h-full md:max-h-full aspect-video md:shadow-md border-0" style="max-height: 100%; max-width: 100%;" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+                    <script>
+                        // Start the reel loading as early as physically possible, rather than
+                        // waiting for the entire boot animation (loading bar + window.load) to
+                        // finish first. Vimeo's own init + buffering already takes real time,
+                        // especially on mobile connections - stacking that AFTER a multi-second
+                        // boot sequence is what was causing the long black-screen delay. This
+                        // runs the instant the browser parses this point in the page, well
+                        // before the boot sequence even begins, so the video gets a real head
+                        // start during the time the person is already looking at the loading screen.
+                        (function() {
+                            var vimeoPlayer = document.getElementById('vimeo-player');
+                            if (vimeoPlayer && !vimeoPlayer.src) {
+                                vimeoPlayer.src = vimeoPlayer.getAttribute('data-src');
+                            }
+                        })();
+                    </script>
                     <div class="portfolio-item hidden"></div>
                 </div>
 
