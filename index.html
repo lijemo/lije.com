@@ -649,7 +649,7 @@
             <button class="bg-[#c0c0c0] border-t-2 border-l-2 border-white border-b-2 border-r-2 border-black w-4 h-4 flex items-center justify-center text-black font-bold text-[10px]" onclick="closeKeygen()">X</button>
         </div>
         <div class="p-3 md:p-4 bg-black text-[#00ff00] font-mono text-xs flex flex-col items-center gap-3 md:gap-4">
-            <div id="keygen-ascii-wrapper" class="hidden md:block mx-auto overflow-hidden" style="margin-bottom: calc(var(--keygen-art-spacing, 2px) - 16px);">
+            <div id="keygen-ascii-wrapper" class="block mx-auto overflow-hidden" style="margin-bottom: calc(var(--keygen-art-spacing, 2px) - 16px);">
                 <pre id="keygen-ascii-pre" class="font-bold whitespace-pre inline-block" style="font-size: 8px; line-height: 8px; transform-origin: top left; margin: 0;">
    ____                                                       _       _  
   /  __    _       _______        ___                       _| |_  _ | | 
@@ -668,7 +668,7 @@
                 <div class="border border-[#00ff00] p-2 mb-3 w-full text-center tracking-widest bg-[#0a200a]" id="serial-output">XXXX-XXXX-XXXX-XXXX</div>
                 <button class="bg-[#c0c0c0] border-t-2 border-l-2 border-white border-b-2 border-r-2 border-black text-black px-4 py-1 font-bold text-xs md:text-sm hover:active:border-t-black hover:active:border-l-black hover:active:border-b-white hover:active:border-r-white" onclick="generateSerial()">GENERATE</button>
             </div>
-            <div class="hidden md:block w-full text-white bg-[#000080] border border-gray-700 p-1 mt-2 tracking-widest overflow-hidden whitespace-nowrap">
+            <div class="block w-full text-white bg-[#000080] border border-gray-700 p-1 mt-2 tracking-widest overflow-hidden whitespace-nowrap">
                 <div class="inline-flex keygen-marquee-track">
                     <span>KEY_01_2319&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;KEY_02_5453&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;KEY_03_9494&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;KEY_04_7651&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span>KEY_01_2319&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;KEY_02_5453&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;KEY_03_9494&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;KEY_04_7651&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
                 </div>
@@ -1573,9 +1573,23 @@
             pre.style.transform = 'none';
             const naturalWidth = pre.offsetWidth;
             const naturalHeight = pre.offsetHeight;
-            pre.style.transform = `scale(${scale})`;
-            wrapper.style.width = (naturalWidth * scale) + 'px';
-            wrapper.style.height = (naturalHeight * scale) + 'px';
+
+            // Don't let the art exceed the space actually available inside the keygen
+            // window - mobile has different padding than desktop, so the same fixed
+            // scale that fits nicely on desktop can overflow a narrower window.
+            let effectiveScale = scale;
+            const container = wrapper.parentElement;
+            if (container) {
+                const cs = getComputedStyle(container);
+                const availableWidth = container.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+                if (naturalWidth * effectiveScale > availableWidth) {
+                    effectiveScale = availableWidth / naturalWidth;
+                }
+            }
+
+            pre.style.transform = `scale(${effectiveScale})`;
+            wrapper.style.width = (naturalWidth * effectiveScale) + 'px';
+            wrapper.style.height = (naturalHeight * effectiveScale) + 'px';
         }
 
         function openKeygen() {
