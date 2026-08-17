@@ -570,21 +570,8 @@
                         </div>
 
                         <a href="games/MinigameDungeon.png" target="_blank" rel="noopener noreferrer" id="minigame-dungeon-link" class="flex flex-col md:flex-row items-center justify-center gap-3 md:gap-4 portfolio-item w-full cursor-pointer hover:opacity-90 transition-opacity">
-                            <img id="minigame-dungeon-img" src="games/MinigameDungeon.png" alt="Minigame Dungeon" class="object-contain w-full flex-shrink-0" style="--minigame-width: 70%;">
+                            <img id="minigame-dungeon-img" src="games/MinigameDungeon.png" alt="Minigame Dungeon" class="object-contain w-full md:w-[93%] flex-shrink-0">
                         </a>
-
-                        <!-- DEBUG: Minigame Dungeon width slider (remove once value is baked in) -->
-                        <div id="minigame-debug-panel" class="fixed bottom-[45px] right-2 md:right-4 z-[200002] bg-[#ece9d8] border-2 border-[#0055e5] rounded shadow-lg p-2 md:p-3 text-xs font-['Tahoma'] text-black flex flex-col gap-1 w-[220px]">
-                            <div class="font-bold">Minigame Dungeon width (debug)</div>
-                            <div class="flex items-center gap-2">
-                                <input type="range" id="minigame-width-slider" min="10" max="100" value="70" class="flex-grow" oninput="document.getElementById('minigame-dungeon-img').style.setProperty('--minigame-width', this.value + '%'); document.getElementById('minigame-width-value').textContent = this.value + '%';">
-                                <span id="minigame-width-value" class="w-10 text-right">70%</span>
-                            </div>
-                        </div>
-                        <style>
-                            #minigame-dungeon-img { width: var(--minigame-width, 70%); }
-                            @media (max-width: 767px) { #minigame-dungeon-img { width: 100%; } }
-                        </style>
                     </div>
                 </div>
 
@@ -808,9 +795,18 @@
 
             <!-- Paint Taskbar Item -->
             <button id="taskbar-chalk-tab" class="hidden xp-taskbar-btn active px-2 md:px-3 py-1 flex items-center gap-1 md:gap-2 text-xs md:text-sm font-bold min-w-[40px] md:min-w-[50px] max-w-[180px] md:max-w-[220px] text-left flex-shrink" onclick="toggleChalkMenu()">
-                <img src="icons/Paint.png" onerror="this.onerror=null; this.src='https://icons.iconarchive.com/icons/microsoft/windows-xp/32/Paint-icon.png';" class="h-3.5 md:h-4 drop-shadow-sm flex-shrink-0"> 
+                <img id="paint-taskbar-icon" src="icons/Paint.png" onerror="this.onerror=null; this.src='https://icons.iconarchive.com/icons/microsoft/windows-xp/32/Paint-icon.png';" class="drop-shadow-sm flex-shrink-0" style="height: var(--paint-taskbar-icon-size, 16px); width: auto;"> 
                 <span class="truncate pr-1 md:pr-2 block w-full text-white">Paint.exe</span>
             </button>
+        </div>
+
+        <!-- DEBUG: Paint taskbar icon size slider (remove once value is baked in) -->
+        <div id="paint-icon-debug-panel" class="fixed bottom-[45px] left-2 md:left-4 z-[200002] bg-[#ece9d8] border-2 border-[#0055e5] rounded shadow-lg p-2 md:p-3 text-xs font-['Tahoma'] text-black flex flex-col gap-1 w-[220px]">
+            <div class="font-bold">Paint taskbar icon size (debug)</div>
+            <div class="flex items-center gap-2">
+                <input type="range" id="paint-icon-slider" min="10" max="40" value="16" class="flex-grow" oninput="document.getElementById('paint-taskbar-icon').style.setProperty('--paint-taskbar-icon-size', this.value + 'px'); document.getElementById('paint-icon-slider-value').textContent = this.value + 'px';">
+                <span id="paint-icon-slider-value" class="w-12 text-right">16px</span>
+            </div>
         </div>
         <div class="h-full flex items-center px-3 md:px-4 text-[11px] md:text-xs bg-gradient-to-b from-[#0F8BE6] to-[#0A63B4] text-white border-l border-[#09519A] shadow-[inset_1px_0_3px_rgba(255,255,255,0.3)]">
             <div class="hidden md:flex relative w-4 h-4 mr-2 items-center justify-center">
@@ -1171,7 +1167,32 @@
         });
 
         let recyclePassword = "";
-        const correctPassword = "2319";
+        const recycleSecrets = {
+            "2319": {
+                filename: "secret.gif",
+                icon: "icons/Secret.png",
+                fallbackIcon: "https://win98icons.alexmeub.com/icons/png/image_file-0.png",
+                onclick: "openImageModal('secret.gif', 'images/secret.gif')"
+            },
+            "5453": {
+                filename: "fish.bat",
+                icon: "icons/fish.png",
+                fallbackIcon: "https://win98icons.alexmeub.com/icons/png/msdos_command_prompt-0.png",
+                onclick: ""
+            },
+            "9494": {
+                filename: "secret.png",
+                icon: "icons/secretpng.png",
+                fallbackIcon: "https://win98icons.alexmeub.com/icons/png/image_file-0.png",
+                onclick: "openImageModal('secret.png', 'images/secretimage.png')"
+            },
+            "7651": {
+                filename: "secret.html",
+                icon: "icons/secrethtml.png",
+                fallbackIcon: "https://win98icons.alexmeub.com/icons/png/html-0.png",
+                onclick: "window.open('https://youtu.be/dQw4w9WgXcQ?si=mNeL77bGzqdMAKBi', '_blank')"
+            }
+        };
 
         function openRecycleBin() {
             recyclePassword = "";
@@ -1215,8 +1236,8 @@
         function clickRecycleFolder(digit) {
             recyclePassword += digit;
             if (recyclePassword.length === 4) {
-                if (recyclePassword === correctPassword) {
-                    renderRecycleSuccess();
+                if (recycleSecrets[recyclePassword]) {
+                    renderRecycleSuccess(recyclePassword);
                 } else {
                     renderRecycleEmpty();
                 }
@@ -1232,15 +1253,19 @@
             content.innerHTML = `<div class="p-4 flex text-xs text-gray-500 font-['Tahoma']">0 objects</div>`;
         }
 
-        function renderRecycleSuccess() {
+        function renderRecycleSuccess(password) {
             const content = document.getElementById('recycle-content');
             const address = document.getElementById('recycle-address');
-            address.value = "C:\\Recycle Bin\\" + recyclePassword.split('').join('\\') + "\\SECRET";
-            
+            const secret = recycleSecrets[password];
+            address.value = "C:\\Recycle Bin\\" + password.split('').join('\\') + "\\SECRET";
+
+            const clickAttr = secret.onclick ? ` onclick="${secret.onclick}"` : '';
+            const cursorClass = secret.onclick ? 'cursor-pointer' : 'cursor-default';
+
             content.innerHTML = `
-                <div class="flex flex-col items-center w-[80px] md:w-[100px] p-2 cursor-pointer group m-2 md:m-4" onclick="openImageModal('secret.gif', 'images/secret.gif')">
-                    <img src="icons/Secret.png" onerror="this.onerror=null; this.src='https://win98icons.alexmeub.com/icons/png/image_file-0.png';" class="mb-1 w-8 h-8 md:w-12 md:h-12 opacity-90" style="transform: scale(var(--recycle-folder-scale)); transition: transform 0.1s ease;">
-                    <span class="text-xs md:text-sm text-center font-['Tahoma'] text-black group-hover:bg-[#316ac5] group-hover:text-white px-1 rounded-sm font-normal">secret.gif</span>
+                <div class="flex flex-col items-center w-[80px] md:w-[100px] p-2 ${cursorClass} group m-2 md:m-4"${clickAttr}>
+                    <img src="${secret.icon}" onerror="this.onerror=null; this.src='${secret.fallbackIcon}';" class="mb-1 w-8 h-8 md:w-12 md:h-12 opacity-90" style="transform: scale(var(--recycle-folder-scale)); transition: transform 0.1s ease;">
+                    <span class="text-xs md:text-sm text-center font-['Tahoma'] text-black group-hover:bg-[#316ac5] group-hover:text-white px-1 rounded-sm font-normal">${secret.filename}</span>
                 </div>
             `;
         }
