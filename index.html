@@ -145,7 +145,6 @@
             --recycle-folder-scale: 2.3;
         }
 
-        /* Fixed base sizes for Fallback Web Icons */
         .desktop-icon-img {
             width: 40px;
             height: 40px;
@@ -162,7 +161,6 @@
             transition: transform 0.1s ease;
         }
 
-        /* Dynamic scale scaling ONLY for Local Icons */
         img[src^="icons/"].desktop-icon-img {
             transform: scale(var(--desktop-icon-scale));
         }
@@ -195,7 +193,6 @@
 </head>
 <body class="h-screen w-screen relative overflow-hidden">
 
-    <!-- Boot Loader Screen -->
     <div id="boot-wrapper" class="fixed inset-0 z-[1000000] bg-white flex items-center justify-center">
         <div class="xp-window bg-[#ece9d8] w-[340px] md:w-[380px] max-w-[90vw] shadow-[4px_4px_10px_rgba(0,0,0,0.6)] flex flex-col">
             <div class="xp-title-bar text-white px-2 py-[2px] flex justify-between items-center cursor-default select-none font-bold">
@@ -214,7 +211,6 @@
         </div>
     </div>
 
-    <!-- Video Backgrounds & Bliss Fallback -->
     <div id="video-bg-container" class="fixed top-0 left-0 w-full h-full -z-10 hidden bg-[#004e98]" style="background-image: url('images/bliss.jpg'), url('https://raw.githubusercontent.com/Visnalize/resources/main/wallpapers/Windows%20XP/Bliss.jpg'); background-repeat: no-repeat; background-position: center center; background-size: cover;">
         <video id="bg-video-intro" class="absolute top-0 left-0 w-full h-full object-cover bg-transparent" muted playsinline>
             <source src="videos/Site_BG_Intro.webm" type="video/webm">
@@ -226,7 +222,6 @@
         </video>
     </div>
 
-    <!-- Desktop Icons -->
     <div class="absolute top-4 left-4 flex flex-col gap-5 md:gap-6 w-20 md:w-24 z-10">
         <!-- My Portfolio Icon -->
         <div class="desktop-icon flex flex-col items-center cursor-pointer text-center group" onclick="handleDesktopIcon(event, restoreWindow)">
@@ -281,7 +276,7 @@
     </div>
 
     <!-- Bottom Right Desktop Icons -->
-    <div class="absolute bottom-[50px] right-2 md:right-4 flex flex-col w-20 md:w-24 z-30">
+    <div class="fixed bottom-[60px] right-2 md:right-4 flex flex-col w-20 md:w-24 z-30">
         <div class="desktop-icon flex flex-col items-center cursor-pointer text-center group" onclick="handleDesktopIcon(event, openRecycleBin)">
             <img src="icons/Recycle Bin.png" onerror="this.onerror=null; this.src='https://win98icons.alexmeub.com/icons/png/recycle_bin_empty-4.png';" class="desktop-icon-img mb-1 pointer-events-none drop-shadow-md" alt="Trash">
             <span class="text-white text-[11px] md:text-xs bg-transparent group-hover:bg-[#316ac5] group-hover:text-white px-1 rounded-sm xp-desktop-text line-clamp-2">Recycle Bin</span>
@@ -799,7 +794,6 @@
             document.documentElement.style.cursor = 'none';
         }
 
-        // --- AUDIO ENGINE ---
         const clickDownAudio = new Audio('sounds/click_down.mp3');
         clickDownAudio.volume = 0.125;
         const clickUpAudio = new Audio('sounds/click_up.mp3');
@@ -825,7 +819,6 @@
             s.play().catch(() => {});
         }, {passive: true});
 
-        // Static for Chalk
         let audioCtx, staticGain, staticBufferSource;
         function initStaticAudio() {
             if (audioCtx) return;
@@ -864,11 +857,9 @@
 
         let highestZIndex = 50;
 
-        // Desktop Icons Event Handler (Single click on mobile, Double click on desktop)
         let lastIconClicked = null;
         let iconClickTime = 0;
         function handleDesktopIcon(e, callback) {
-            // Treat as single click if screen is mobile-width or if touch events are supported
             if (window.innerWidth <= 768 || ('ontouchstart' in window && navigator.maxTouchPoints > 0)) {
                 callback();
             } else {
@@ -906,7 +897,7 @@
 
         function toggleAddressDropdown(event) {
             if (event) event.stopPropagation();
-            if (window.innerWidth > 768) return; // Dropdown is disabled on desktop
+            if (window.innerWidth > 768) return; 
             const dropdown = document.getElementById('address-dropdown');
             dropdown.classList.toggle('hidden');
         }
@@ -915,7 +906,6 @@
             document.getElementById('address-dropdown').classList.add('hidden');
             restoreWindow();
             
-            // Sync Sidebar Active States
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
             if (element) {
                 element.classList.add('active');
@@ -957,7 +947,6 @@
             document.getElementById('objects-count').textContent = `${itemsCount} objects`;
         }
 
-        // Setup readonly state for address bar on mobile
         function updateAddressReadonly() {
             const addressText = document.getElementById('address-text');
             if (window.innerWidth <= 768) {
@@ -966,7 +955,6 @@
                 addressText.removeAttribute('readonly');
             }
             
-            // Update binder paper background for desktop
             const binderPaper = document.getElementById('binder-paper');
             if (window.innerWidth > 768) {
                 binderPaper.style.backgroundImage = 'linear-gradient(90deg, transparent 40px, #ff8a8a 40px, #ff8a8a 42px, transparent 42px), linear-gradient(180deg, transparent 27px, #a3c4f3 27px, #a3c4f3 28px)';
@@ -985,7 +973,6 @@
         window.addEventListener('resize', updateAddressReadonly);
         updateAddressReadonly();
 
-        // TOUCH & MOUSE WINDOW DRAGGING
         function makeDraggable(headerId, windowId) {
             const header = document.getElementById(headerId);
             const win = document.getElementById(windowId);
@@ -1120,7 +1107,6 @@
             }
         });
 
-        // RECYCLE BIN EASTER EGG
         let recyclePassword = "";
         const correctPassword = "2319";
 
@@ -1189,8 +1175,8 @@
             address.value = "C:\\Recycle Bin\\" + recyclePassword.split('').join('\\') + "\\SECRET";
             
             content.innerHTML = `
-                <div class="flex flex-col items-center w-[80px] md:w-[100px] p-2 cursor-pointer group m-2 md:m-4" onclick="handleDesktopIcon(event, () => openImageModal('secret.gif', 'images/secret.gif'))">
-                    <img src="icons/secret.png" onerror="this.onerror=null; this.src='https://win98icons.alexmeub.com/icons/png/image_file-0.png';" class="mb-1 w-8 h-8 md:w-12 md:h-12 opacity-90" style="transform: scale(var(--recycle-folder-scale)); transition: transform 0.1s ease;">
+                <div class="flex flex-col items-center w-[80px] md:w-[100px] p-2 cursor-pointer group m-2 md:m-4" onclick="openImageModal('secret.gif', 'images/secret.gif')">
+                    <img src="icons/Secret.png" onerror="this.onerror=null; this.src='https://win98icons.alexmeub.com/icons/png/image_file-0.png';" class="mb-1 w-8 h-8 md:w-12 md:h-12 opacity-90" style="transform: scale(var(--recycle-folder-scale)); transition: transform 0.1s ease;">
                     <span class="text-xs md:text-sm text-center font-['Tahoma'] text-black group-hover:bg-[#316ac5] group-hover:text-white px-1 rounded-sm font-normal">secret.gif</span>
                 </div>
             `;
@@ -1328,6 +1314,9 @@
 
             imgElement.onload = showModalAndCenter;
             imgElement.src = imageSrc;
+            if (imgElement.complete) {
+                showModalAndCenter();
+            }
         }
 
         function closeImageModal() {
@@ -1459,9 +1448,6 @@
             animate();
         }
 
-        // ==========================================
-        // BUBBLES SCREENSAVER LOGIC
-        // ==========================================
         let bubblesInterval = null;
         let activeBubbles = [];
         let bubblesAnimationId = null;
@@ -1684,7 +1670,6 @@
         setInterval(updateClock, 1000);
         updateClock();
 
-        // TOUCH & MOUSE BALL PHYSICS
         const ball = document.getElementById('physics-ball');
         let bx = 40, by = 40, bvx = 0, bvy = 0;
         let isBallActive = false;
@@ -1803,7 +1788,6 @@
         }, {passive: false});
         document.addEventListener('touchend', handleBallEnd);
 
-        // TOUCH & MOUSE PAINT LOGIC
         const chalkCanvas = document.getElementById('chalk-canvas');
         const chalkCtx = chalkCanvas.getContext('2d');
         let chalkStrokes = [];
@@ -1945,7 +1929,6 @@
             }
         }
 
-        // LOADERS AND INITIALIZATION
         window.addEventListener('load', () => {
             const blocksContainer = document.getElementById('loading-blocks');
             const bootWrapper = document.getElementById('boot-wrapper');
@@ -2059,7 +2042,6 @@
                         };
                         setTimeout(() => mainWindow.classList.remove('opacity-0'), 500);
                         
-                        // We must recenter right when it pops in
                         centerPortfolio();
                     }, totalDelay + 400);
                 }, 850);
