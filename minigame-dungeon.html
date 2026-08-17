@@ -24,6 +24,18 @@
 </head>
 <body>
     <img src="MinigameDungeon.png" alt="Minigame Dungeon">
-    <audio src="../sounds/lease.mp3" autoplay loop></audio>
+    <audio id="lease-audio" src="../sounds/lease.mp3" autoplay loop></audio>
+    <script>
+        // Stop the loop when this tab is backgrounded (switched away from, or
+        // the browser is minimized/exited on mobile), resume when it's foreground again.
+        const leaseAudio = document.getElementById('lease-audio');
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                leaseAudio.pause();
+            } else {
+                leaseAudio.play().catch(() => {});
+            }
+        });
+    </script>
 </body>
 </html>
