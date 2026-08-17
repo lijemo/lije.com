@@ -475,16 +475,13 @@
                 
                 <!-- Reel Tab -->
                 <div id="reel" class="tab-content h-full w-full flex items-center justify-center bg-black md:bg-white md:p-3 overflow-hidden">
-                    <iframe id="vimeo-player" data-src="https://player.vimeo.com/video/285639811?autoplay=1&loop=1&background=1" class="w-full h-full md:max-h-full aspect-video md:shadow-md border-0" style="max-height: 100%; max-width: 100%;" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+                    <iframe id="vimeo-player" data-src="https://player.vimeo.com/video/285639811?loop=1&muted=1&controls=0&title=0&byline=0&portrait=0" class="w-full h-full md:max-h-full aspect-video md:shadow-md border-0" style="max-height: 100%; max-width: 100%;" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
                     <script>
-                        // Start the reel loading as early as physically possible, rather than
-                        // waiting for the entire boot animation (loading bar + window.load) to
-                        // finish first. Vimeo's own init + buffering already takes real time,
-                        // especially on mobile connections - stacking that AFTER a multi-second
-                        // boot sequence is what was causing the long black-screen delay. This
-                        // runs the instant the browser parses this point in the page, well
-                        // before the boot sequence even begins, so the video gets a real head
-                        // start during the time the person is already looking at the loading screen.
+                        // Start the reel LOADING as early as physically possible (see comment
+                        // history), but deliberately without autoplay/background params, so it
+                        // preloads/buffers in the background without actually starting playback.
+                        // Playback is triggered explicitly, once, at the exact moment the main
+                        // window is revealed to the user (see the finishBoot sequence below).
                         (function() {
                             var vimeoPlayer = document.getElementById('vimeo-player');
                             if (vimeoPlayer && !vimeoPlayer.src) {
@@ -2426,7 +2423,12 @@
                             popAnim.cancel();
                             mainWindow.style.opacity = '1';
                         };
-                        setTimeout(() => mainWindow.classList.remove('opacity-0'), 500);
+                        setTimeout(() => {
+                            mainWindow.classList.remove('opacity-0');
+                            // The reel has been preloading/buffering silently since ~page load;
+                            // only start it playing now, right as it actually becomes visible.
+                            playVimeo();
+                        }, 500);
                     }, totalDelay + 400);
                 }, 850);
             }
