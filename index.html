@@ -320,7 +320,7 @@
     <div id="main-window" class="modal-window opacity-0 absolute w-[96vw] md:w-[976px] max-w-[95vw] h-auto md:h-[550px] flex flex-col z-40 bg-[#ece9d8] rounded-t-[8px] shadow-[2px_4px_10px_rgba(0,0,0,0.4)] border-[3px] border-[#0055e5] overflow-hidden">
         
         <!-- Header / Title Bar -->
-        <div id="main-header" class="xp-title-bar text-white flex justify-between items-center cursor-default select-none">
+        <div id="main-header" class="xp-title-bar text-white flex justify-between items-center cursor-default select-none shrink-0">
             <span class="flex items-center gap-1 text-[12px] sm:text-[13px] font-bold tracking-wide drop-shadow-md truncate max-w-[200px] sm:max-w-none">
                 <img src="https://win98icons.alexmeub.com/icons/png/directory_open_file_mydocs-4.png" class="h-4 mr-1"> Lije_Morgan_Portfolio.exe
             </span>
@@ -332,7 +332,7 @@
         </div>
 
         <!-- Menu Bar -->
-        <div class="xp-toolbar flex gap-2 sm:gap-3 text-[11px] py-1 px-2 text-black overflow-x-auto whitespace-nowrap">
+        <div class="xp-toolbar flex gap-2 sm:gap-3 text-[11px] py-1 px-2 text-black overflow-x-auto whitespace-nowrap shrink-0">
             <span class="cursor-pointer hover:bg-blue-600 hover:text-white px-1"><u>F</u>ile</span>
             <span class="cursor-pointer hover:bg-blue-600 hover:text-white px-1"><u>E</u>dit</span>
             <span class="cursor-pointer hover:bg-blue-600 hover:text-white px-1"><u>V</u>iew</span>
@@ -342,7 +342,7 @@
         </div>
 
         <!-- Address Bar (Acts as Primary Navigation Dropdown Menu on Mobile) -->
-        <div class="xp-toolbar relative flex items-center gap-1 md:gap-2 py-1 px-2 border-b border-[#D3D3D3] z-50">
+        <div class="xp-toolbar relative flex items-center gap-1 md:gap-2 py-1 px-2 border-b border-[#D3D3D3] z-50 shrink-0">
             <span class="text-[#aca899] text-xs font-['Tahoma'] shrink-0">Address</span>
             
             <div class="bg-white border border-[#7f9db9] flex-grow flex items-center px-1 cursor-pointer md:cursor-text relative" onclick="toggleAddressDropdown(event)">
@@ -494,12 +494,39 @@
                             </div>
                         </div>
 
-                        <div class="flex flex-col cursor-pointer group portfolio-item border border-transparent hover:border-[#316ac5] hover:bg-[#e5f3fb] p-2 rounded transition-colors" onclick="openVideoModal('InterdimensionalPizzaPushers', 'JiwSzz0PwAw')">
+                        <div class="flex flex-col cursor-pointer group portfolio-item border border-transparent hover:border-[#316ac5] hover:bg-[#e5f3fb] p-2 rounded transition-colors" onclick="openVideoModal('Pikachu Dies', 'R0B3jeRjvz0')">
+                            <div class="w-full aspect-video bg-black border border-gray-400 flex flex-col items-center justify-center text-white overflow-hidden relative shadow-sm">
+                                <img src="https://img.youtube.com/vi/R0B3jeRjvz0/maxresdefault.jpg" onerror="this.onerror=null; this.src='https://img.youtube.com/vi/R0B3jeRjvz0/hqdefault.jpg';" class="w-full h-full object-cover">
+                            </div>
+                            <div class="text-center mt-1 md:mt-2">
+                                <p class="text-xs text-black group-hover:text-white group-hover:bg-[#316ac5] px-1 rounded-sm inline-block">Pikachu Dies</p>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col cursor-pointer group portfolio-item border border-transparent hover:border-[#316ac5] hover:bg-[#e5f3fb] p-2 rounded transition-colors" onclick="openVideoModal('The Great Pig Chase', 'J56zRAEeIpw')">
+                            <div class="w-full aspect-video bg-black border border-gray-400 flex flex-col items-center justify-center text-white overflow-hidden relative shadow-sm">
+                                <img src="https://img.youtube.com/vi/J56zRAEeIpw/maxresdefault.jpg" onerror="this.onerror=null; this.src='https://img.youtube.com/vi/J56zRAEeIpw/hqdefault.jpg';" class="w-full h-full object-cover">
+                            </div>
+                            <div class="text-center mt-1 md:mt-2">
+                                <p class="text-xs text-black group-hover:text-white group-hover:bg-[#316ac5] px-1 rounded-sm inline-block">The Great Pig Chase</p>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col cursor-pointer group portfolio-item border border-transparent hover:border-[#316ac5] hover:bg-[#e5f3fb] p-2 rounded transition-colors" onclick="openVideoModal('Interdimensional Pizza Pushers', 'JiwSzz0PwAw')">
                             <div class="w-full aspect-video bg-black border border-gray-400 flex flex-col items-center justify-center text-white overflow-hidden relative shadow-sm">
                                 <img src="https://img.youtube.com/vi/JiwSzz0PwAw/maxresdefault.jpg" onerror="this.onerror=null; this.src='https://img.youtube.com/vi/JiwSzz0PwAw/hqdefault.jpg';" class="w-full h-full object-cover">
                             </div>
                             <div class="text-center mt-1 md:mt-2">
-                                <p class="text-xs text-black group-hover:text-white group-hover:bg-[#316ac5] px-1 rounded-sm inline-block">InterdimensionalPizzaPushers</p>
+                                <p class="text-xs text-black group-hover:text-white group-hover:bg-[#316ac5] px-1 rounded-sm inline-block">Interdimensional Pizza Pushers</p>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col cursor-pointer group portfolio-item border border-transparent hover:border-[#316ac5] hover:bg-[#e5f3fb] p-2 rounded transition-colors" onclick="openVideoModal('Bovine Bedtime', 'wOtwro8s8DU')">
+                            <div class="w-full aspect-video bg-black border border-gray-400 flex flex-col items-center justify-center text-white overflow-hidden relative shadow-sm">
+                                <img src="https://img.youtube.com/vi/wOtwro8s8DU/maxresdefault.jpg" onerror="this.onerror=null; this.src='https://img.youtube.com/vi/wOtwro8s8DU/hqdefault.jpg';" class="w-full h-full object-cover">
+                            </div>
+                            <div class="text-center mt-1 md:mt-2">
+                                <p class="text-xs text-black group-hover:text-white group-hover:bg-[#316ac5] px-1 rounded-sm inline-block">Bovine Bedtime</p>
                             </div>
                         </div>
                     </div>
@@ -524,6 +551,10 @@
                             <img src="games/UnderwaterPlasticPickup_Thumbnail.gif" alt="Underwater Plastic Pickup Thumbnail" class="object-cover w-full md:w-[23%] flex-shrink-0">
                             <img src="games/UnderwaterPlasticPickup_Info.jpg" alt="Underwater Plastic Pickup Info" class="object-contain w-full md:w-[70%] flex-shrink-0">
                         </div>
+
+                        <a href="games/MinigameDungeon.png" target="_blank" rel="noopener noreferrer" class="flex flex-col md:flex-row items-center justify-center gap-3 md:gap-4 portfolio-item w-full cursor-pointer hover:opacity-90 transition-opacity">
+                            <img src="games/MinigameDungeon.png" alt="Minigame Dungeon" class="object-contain w-full md:w-[70%] flex-shrink-0">
+                        </a>
                     </div>
                 </div>
 
@@ -1303,7 +1334,10 @@
             modal.classList.remove('hidden');
             modalTitle.innerHTML = `<span class="text-xs">🖼️</span> ${title}`;
             
+            let modalShown = false;
             const showModalAndCenter = () => {
+                if (modalShown) return;
+                modalShown = true;
                 setTimeout(() => {
                     centerImage();
                     highestZIndex++;
@@ -1313,6 +1347,10 @@
             };
 
             imgElement.onload = showModalAndCenter;
+            imgElement.onerror = () => {
+                console.warn('Image failed to load, showing window anyway:', imageSrc);
+                showModalAndCenter();
+            };
             imgElement.src = imageSrc;
             if (imgElement.complete) {
                 showModalAndCenter();
