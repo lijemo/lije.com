@@ -1344,6 +1344,16 @@
             const num = String(index).padStart(4, '0');
             const src = `images/fish/FishPopup__${num}.png`;
 
+            // Preload the image before creating the window at all, so the window
+            // never appears mid-load / visibly pops the image in after the fact.
+            const preloadImg = new Image();
+            const create = () => createFishPopupWindow(index, num, src);
+            preloadImg.onload = create;
+            preloadImg.onerror = create;
+            preloadImg.src = src;
+        }
+
+        function createFishPopupWindow(index, num, src) {
             const maxPopupWidth = (window.innerWidth * FISH_POPUP_MAX_VW / 100) + FISH_POPUP_CHROME_W;
             const maxPopupHeight = (window.innerHeight * FISH_POPUP_MAX_VH / 100) + FISH_POPUP_CHROME_H;
             const maxLeft = Math.max(0, window.innerWidth - maxPopupWidth);
@@ -1361,7 +1371,7 @@
             popup.style.top = top + 'px';
             popup.style.zIndex = highestZIndex;
             popup.innerHTML = `
-                <div class="fish-popup-header xp-title-bar text-white px-2 py-[2px] flex justify-between items-center cursor-move select-none shrink-0">
+                <div class="fish-popup-header xp-title-bar text-white px-2 py-[2px] flex justify-between items-center select-none shrink-0">
                     <span class="flex items-center gap-1 text-[10px] tracking-wide drop-shadow-md truncate">
                         FishPopup__${num}.png
                     </span>
@@ -2283,7 +2293,6 @@
                         
                         popAnim.onfinish = () => {
                             popAnim.cancel();
-                            mainWindow.style.transform = currentTransform;
                             mainWindow.style.opacity = '1';
                         };
                         setTimeout(() => mainWindow.classList.remove('opacity-0'), 500);
