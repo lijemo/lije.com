@@ -151,6 +151,7 @@
             --power-icon-scale: 1.8;
             --bubbles-icon-scale: 1.2;
             --recycle-folder-scale: 2.3;
+            --secret-icon-scale: 2.3;
         }
 
         .desktop-icon-img {
@@ -313,6 +314,24 @@
         
         <div class="flex-grow bg-white p-2 md:p-4 overflow-y-auto" id="recycle-content">
             <!-- Folders populate here -->
+        </div>
+    </div>
+
+    <!-- DEBUG: Secret.png icon scale slider (remove once value is baked in) -->
+    <div id="secret-icon-debug-panel" class="fixed top-2 right-2 md:top-4 md:right-4 z-[200002] bg-[#ece9d8] border-2 border-[#0055e5] rounded shadow-lg p-2 md:p-3 text-xs font-['Tahoma'] text-black flex flex-col gap-1 w-[220px]">
+        <div class="font-bold">Secret.png icon scale (debug)</div>
+        <div class="flex items-center gap-2">
+            <input type="range" id="secret-icon-scale-slider" min="0.5" max="5" step="0.1" value="2.3" class="flex-grow" oninput="document.documentElement.style.setProperty('--secret-icon-scale', this.value); document.getElementById('secret-icon-scale-value').textContent = this.value + 'x';">
+            <span id="secret-icon-scale-value" class="w-10 text-right">2.3x</span>
+        </div>
+    </div>
+
+    <!-- DEBUG: Keygen ASCII art scale slider (remove once value is baked in) -->
+    <div id="keygen-art-debug-panel" class="fixed top-2 left-2 md:top-4 md:left-4 z-[200002] bg-[#ece9d8] border-2 border-[#0055e5] rounded shadow-lg p-2 md:p-3 text-xs font-['Tahoma'] text-black flex flex-col gap-1 w-[220px]">
+        <div class="font-bold">Keygen art scale (debug)</div>
+        <div class="flex items-center gap-2">
+            <input type="range" id="keygen-art-scale-slider" min="0.1" max="1.5" step="0.05" value="0.4" class="flex-grow" oninput="updateKeygenArtScale(parseFloat(this.value)); document.getElementById('keygen-art-scale-value').textContent = this.value + 'x';">
+            <span id="keygen-art-scale-value" class="w-10 text-right">0.4x</span>
         </div>
     </div>
 
@@ -569,7 +588,7 @@
                             <img src="games/UnderwaterPlasticPickup_Info.jpg" alt="Underwater Plastic Pickup Info" class="object-contain w-full md:w-[70%] flex-shrink-0">
                         </div>
 
-                        <a href="games/MinigameDungeon.png" target="_blank" rel="noopener noreferrer" id="minigame-dungeon-link" class="flex flex-col md:flex-row items-center justify-center gap-3 md:gap-4 portfolio-item w-full cursor-pointer hover:opacity-90 transition-opacity">
+                        <a href="games/minigame-dungeon.html" target="_blank" rel="noopener noreferrer" id="minigame-dungeon-link" class="flex flex-col md:flex-row items-center justify-center gap-3 md:gap-4 portfolio-item w-full cursor-pointer hover:opacity-90 transition-opacity">
                             <img id="minigame-dungeon-img" src="games/MinigameDungeon.png" alt="Minigame Dungeon" class="object-contain w-full md:w-[93%] flex-shrink-0">
                         </a>
                     </div>
@@ -647,13 +666,20 @@
             <button class="bg-[#c0c0c0] border-t-2 border-l-2 border-white border-b-2 border-r-2 border-black w-4 h-4 flex items-center justify-center text-black font-bold text-[10px]" onclick="closeKeygen()">X</button>
         </div>
         <div class="p-3 md:p-4 bg-black text-[#00ff00] font-mono text-xs flex flex-col items-center gap-3 md:gap-4">
-            <pre class="hidden md:block text-center text-[8px] leading-[8px] font-bold">
-  ____ ___  ____  _____ 
- / ___/ _ \|  _ \| ____|
-| |  | | | | |_) |  _|  
-| |__| |_| |  _ <| |___ 
- \____\___/|_| \_\_____|
-            </pre>
+            <div id="keygen-ascii-wrapper" class="hidden md:block mx-auto overflow-hidden">
+                <pre id="keygen-ascii-pre" class="font-bold whitespace-pre inline-block" style="font-size: 8px; line-height: 8px; transform-origin: top left; margin: 0;">
+   ____                                                       _       _  
+  /  __    _       _______        ___                       _| |_  _ | | 
+ |   \ \__| |_    |____   |_ _   /  /                      |_  __|| || | 
+ |   /  __    \   ___/  _/|_|_| |  |___  __   ___________   / // \| || | 
+    /  _\/ /\  | |___  _____|   |   _  \|  | |___________| /__  /_| || | 
+    | |/ _/_/  |   /  /____     |  | |  |  |                / _/ /|_|| | 
+    \___/  \__/    \_______|   /__/   \___/                /_/  / ___| |  |
+                                                            \_/\_\\____|  |
+                                                                     ____/
+                </pre>
+            </div>
+
             <div class="text-center w-full">
                 <div class="mb-2 text-white font-bold tracking-widest text-sm border-b border-gray-700 pb-1">LijeOS Pro v1.0</div>
                 <div class="border border-[#00ff00] p-2 mb-3 w-full text-center tracking-widest bg-[#0a200a]" id="serial-output">XXXX-XXXX-XXXX-XXXX</div>
@@ -1182,13 +1208,13 @@
             },
             "9494": {
                 filename: "secret.png",
-                icon: "icons/secretpng.png",
+                icon: "icons/Secret.png",
                 fallbackIcon: "https://win98icons.alexmeub.com/icons/png/image_file-0.png",
                 onclick: "openImageModal('secret.png', 'images/secretimage.png')"
             },
             "7651": {
                 filename: "secret.html",
-                icon: "icons/secrethtml.png",
+                icon: "icons/Secret.png",
                 fallbackIcon: "https://win98icons.alexmeub.com/icons/png/html-0.png",
                 onclick: "window.open('https://youtu.be/dQw4w9WgXcQ?si=mNeL77bGzqdMAKBi', '_blank')"
             }
@@ -1264,7 +1290,7 @@
 
             content.innerHTML = `
                 <div class="flex flex-col items-center w-[80px] md:w-[100px] p-2 ${cursorClass} group m-2 md:m-4"${clickAttr}>
-                    <img src="${secret.icon}" onerror="this.onerror=null; this.src='${secret.fallbackIcon}';" class="mb-1 w-8 h-8 md:w-12 md:h-12 opacity-90" style="transform: scale(var(--recycle-folder-scale)); transition: transform 0.1s ease;">
+                    <img src="${secret.icon}" onerror="this.onerror=null; this.src='${secret.fallbackIcon}';" class="mb-1 w-8 h-8 md:w-12 md:h-12 opacity-90" style="transform: scale(var(--secret-icon-scale)); transition: transform 0.1s ease;">
                     <span class="text-xs md:text-sm text-center font-['Tahoma'] text-black group-hover:bg-[#316ac5] group-hover:text-white px-1 rounded-sm font-normal">${secret.filename}</span>
                 </div>
             `;
@@ -1421,6 +1447,18 @@
             modal.style.opacity = '0';
         }
 
+        function updateKeygenArtScale(scale) {
+            const pre = document.getElementById('keygen-ascii-pre');
+            const wrapper = document.getElementById('keygen-ascii-wrapper');
+            if (!pre || !wrapper) return;
+            pre.style.transform = 'none';
+            const naturalWidth = pre.offsetWidth;
+            const naturalHeight = pre.offsetHeight;
+            pre.style.transform = `scale(${scale})`;
+            wrapper.style.width = (naturalWidth * scale) + 'px';
+            wrapper.style.height = (naturalHeight * scale) + 'px';
+        }
+
         function openKeygen() {
             const modal = document.getElementById('keygen-modal');
             modal.classList.remove('hidden');
@@ -1429,6 +1467,8 @@
             modal.style.zIndex = highestZIndex;
             keygenAudio.currentTime = 0;
             keygenAudio.play().catch(() => {});
+            const slider = document.getElementById('keygen-art-scale-slider');
+            updateKeygenArtScale(slider ? parseFloat(slider.value) : 0.4);
         }
 
         function closeKeygen() {
