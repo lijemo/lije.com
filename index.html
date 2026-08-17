@@ -244,7 +244,7 @@
         </div>
     </div>
 
-    <div id="video-bg-container" class="fixed top-0 left-0 w-full h-full -z-10 hidden bg-[#004e98]" style="background-image: url('images/bliss.jpg'), url('https://raw.githubusercontent.com/Visnalize/resources/main/wallpapers/Windows%20XP/Bliss.jpg'); background-repeat: no-repeat; background-position: center center; background-size: cover;">
+    <div id="video-bg-container" class="fixed top-0 left-0 w-full h-full -z-10 hidden bg-white" style="background-image: url('images/bliss.jpg'), url('https://raw.githubusercontent.com/Visnalize/resources/main/wallpapers/Windows%20XP/Bliss.jpg'); background-repeat: no-repeat; background-position: center center; background-size: cover;">
         <video id="bg-video-intro" class="absolute top-0 left-0 w-full h-full object-cover bg-transparent" muted playsinline preload="auto">
             <source src="videos/Site_BG_Intro.webm" type="video/webm">
             <source src="videos/Site_BG_Intro.mp4" type="video/mp4">
@@ -474,19 +474,49 @@
             <div class="w-full h-full p-0 overflow-y-auto relative z-0">
                 
                 <!-- Reel Tab -->
-                <div id="reel" class="tab-content h-full w-full flex items-center justify-center bg-black md:bg-white md:p-3 overflow-hidden">
-                    <iframe id="vimeo-player" data-src="https://player.vimeo.com/video/285639811?loop=1&muted=1&controls=0&title=0&byline=0&portrait=0" class="w-full h-full md:max-h-full aspect-video md:shadow-md border-0" style="max-height: 100%; max-width: 100%;" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+                <div id="reel" class="tab-content h-full w-full flex items-center justify-center bg-black md:bg-white md:p-3 overflow-hidden relative">
+                    <iframe id="vimeo-player" data-src="https://player.vimeo.com/video/285639811?autoplay=1&loop=1&background=1" class="w-full h-full md:max-h-full aspect-video md:shadow-md border-0" style="max-height: 100%; max-width: 100%;" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+                    <div id="reel-loading-overlay" class="absolute inset-0 flex flex-col items-center justify-center gap-3 text-white bg-black pointer-events-none">
+                        <span class="text-xs md:text-sm tracking-wide font-['Tahoma']">loading animation reel</span>
+                        <div class="w-5 h-5 md:w-6 md:h-6 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                    </div>
                     <script>
-                        // Start the reel LOADING as early as physically possible (see comment
-                        // history), but deliberately without autoplay/background params, so it
-                        // preloads/buffers in the background without actually starting playback.
-                        // Playback is triggered explicitly, once, at the exact moment the main
-                        // window is revealed to the user (see the finishBoot sequence below).
+                        // Start the reel loading as early as physically possible, rather than
+                        // waiting for the entire boot animation to finish first, so it has a
+                        // real head start buffering. It plays (and loops) automatically as soon
+                        // as it's ready, same as before. While it's loading, the black iframe is
+                        // covered by a "loading animation reel" overlay instead of showing raw
+                        // black - the overlay is removed the moment Vimeo actually reports
+                        // playback has begun (via its postMessage event API), with a timeout
+                        // fallback in case that event is ever missed.
                         (function() {
                             var vimeoPlayer = document.getElementById('vimeo-player');
+                            var overlay = document.getElementById('reel-loading-overlay');
+
+                            function hideOverlay() {
+                                if (overlay) overlay.style.display = 'none';
+                            }
+
+                            window.addEventListener('message', function(e) {
+                                if (!vimeoPlayer || e.source !== vimeoPlayer.contentWindow) return;
+                                try {
+                                    var data = JSON.parse(e.data);
+                                    if (data.event === 'play' || data.event === 'playing') {
+                                        hideOverlay();
+                                    }
+                                } catch (err) { /* not a JSON message from the player, ignore */ }
+                            });
+
                             if (vimeoPlayer && !vimeoPlayer.src) {
                                 vimeoPlayer.src = vimeoPlayer.getAttribute('data-src');
+                                vimeoPlayer.addEventListener('load', function() {
+                                    vimeoPlayer.contentWindow.postMessage(JSON.stringify({ method: 'addEventListener', value: 'play' }), '*');
+                                });
                             }
+
+                            // Safety net: never leave the overlay stuck up if the play event
+                            // is missed for any reason (slow connection, blocked message, etc).
+                            setTimeout(hideOverlay, 10000);
                         })();
                     </script>
                     <div class="portfolio-item hidden"></div>
@@ -2423,12 +2453,7 @@
                             popAnim.cancel();
                             mainWindow.style.opacity = '1';
                         };
-                        setTimeout(() => {
-                            mainWindow.classList.remove('opacity-0');
-                            // The reel has been preloading/buffering silently since ~page load;
-                            // only start it playing now, right as it actually becomes visible.
-                            playVimeo();
-                        }, 500);
+                        setTimeout(() => mainWindow.classList.remove('opacity-0'), 500);
                     }, totalDelay + 400);
                 }, 850);
             }
