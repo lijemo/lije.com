@@ -807,15 +807,6 @@
                 <span class="truncate pr-1 md:pr-2 block w-full text-white">Paint.exe</span>
             </button>
         </div>
-
-        <!-- DEBUG: Binder page (Info tab) scale slider (remove once value is baked in) -->
-        <div id="binder-scale-debug-panel" class="fixed top-2 left-2 md:top-4 md:left-4 z-[200002] bg-[#ece9d8] border-2 border-[#0055e5] rounded shadow-lg p-2 md:p-3 text-xs font-['Tahoma'] text-black flex flex-col gap-1 w-[220px]">
-            <div class="font-bold">Binder page scale (debug)</div>
-            <div class="flex items-center gap-2">
-                <input type="range" id="binder-scale-slider" min="0.3" max="1.2" step="0.05" value="1" class="flex-grow" oninput="updateBinderScale(parseFloat(this.value)); document.getElementById('binder-scale-value').textContent = this.value + 'x';">
-                <span id="binder-scale-value" class="w-10 text-right">1x</span>
-            </div>
-        </div>
         <div class="h-full flex items-center px-3 md:px-4 text-[11px] md:text-xs bg-gradient-to-b from-[#0F8BE6] to-[#0A63B4] text-white border-l border-[#09519A] shadow-[inset_1px_0_3px_rgba(255,255,255,0.3)]">
             <div class="hidden md:flex relative w-4 h-4 mr-2 items-center justify-center">
                 <img src="icons/Sound.png" onerror="this.onerror=null; this.src='https://icons.iconarchive.com/icons/microsoft/windows-xp/16/Volume-icon.png';" class="absolute object-contain scale-[2] transform origin-center">
@@ -1017,8 +1008,9 @@
         // Base pixel values for the binder-paper look at scale = 1 (the desktop
         // appearance). Every measurement that needs to move together - ruled-line
         // spacing, the red margin line's position, padding, font size - is derived
-        // from these, multiplied by one scale factor, so they always stay in sync
-        // no matter what value the debug slider lands on.
+        // from these, multiplied by one scale factor, so they always stay in sync.
+        // Desktop always uses scale 1 (unchanged); mobile uses a smaller baked-in
+        // scale, decided via the debug slider.
         const BINDER_BASE = {
             lineHeight: 28,
             paddingLeft: 55,
@@ -1028,12 +1020,12 @@
             marginLineWidth: 2,
             fontSize: 14
         };
-        let currentBinderScale = 1;
+        const BINDER_MOBILE_SCALE = 0.85;
 
         function updateBinderScale(scale) {
-            currentBinderScale = scale;
             const binderPaper = document.getElementById('binder-paper');
             if (!binderPaper) return;
+            const isMobile = window.innerWidth <= 768;
 
             const lh = BINDER_BASE.lineHeight * scale;
             const pl = BINDER_BASE.paddingLeft * scale;
@@ -1063,20 +1055,24 @@
                     paragraphs.push(child);
                 }
             });
-            if (paragraphs.length) paragraphs[paragraphs.length - 1].style.marginBottom = '0px';
+            // Extra breathing room before the hyperlinks row - mobile only, desktop unchanged.
+            if (paragraphs.length) {
+                paragraphs[paragraphs.length - 1].style.marginBottom = isMobile ? lh + 'px' : '0px';
+            }
         }
 
         function updateAddressReadonly() {
             const addressText = document.getElementById('address-text');
-            if (window.innerWidth <= 768) {
+            const isMobile = window.innerWidth <= 768;
+            if (isMobile) {
                 addressText.setAttribute('readonly', 'true');
             } else {
                 addressText.removeAttribute('readonly');
             }
 
-            // Binder-paper styling (ruled blue lines + red margin line) is now applied
-            // on every screen size, not just desktop, so mobile matches desktop.
-            updateBinderScale(currentBinderScale);
+            // Binder-paper ruled-line styling now applies on every screen size, but the
+            // overall scale is smaller on mobile only - desktop always stays at 1x.
+            updateBinderScale(isMobile ? BINDER_MOBILE_SCALE : 1);
         }
         window.addEventListener('resize', updateAddressReadonly);
         updateAddressReadonly();
