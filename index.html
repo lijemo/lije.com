@@ -222,11 +222,11 @@
     </div>
 
     <div id="video-bg-container" class="fixed top-0 left-0 w-full h-full -z-10 hidden bg-[#004e98]" style="background-image: url('images/bliss.jpg'), url('https://raw.githubusercontent.com/Visnalize/resources/main/wallpapers/Windows%20XP/Bliss.jpg'); background-repeat: no-repeat; background-position: center center; background-size: cover;">
-        <video id="bg-video-intro" class="absolute top-0 left-0 w-full h-full object-cover bg-transparent" muted playsinline>
+        <video id="bg-video-intro" class="absolute top-0 left-0 w-full h-full object-cover bg-transparent" muted playsinline preload="auto">
             <source src="videos/Site_BG_Intro.webm" type="video/webm">
             <source src="videos/Site_BG_Intro.mp4" type="video/mp4">
         </video>
-        <video id="bg-video-loop" class="absolute top-0 left-0 w-full h-full object-cover hidden bg-transparent" muted loop playsinline>
+        <video id="bg-video-loop" class="absolute top-0 left-0 w-full h-full object-cover hidden bg-transparent" muted loop playsinline preload="auto">
             <source src="videos/Site_BG_Loop.webm" type="video/webm">
             <source src="videos/Site_BG_Loop.mp4" type="video/mp4">
         </video>
@@ -804,18 +804,9 @@
 
             <!-- Paint Taskbar Item -->
             <button id="taskbar-chalk-tab" class="hidden xp-taskbar-btn active px-2 md:px-3 py-1 flex items-center gap-1 md:gap-2 text-xs md:text-sm font-bold min-w-[40px] md:min-w-[50px] max-w-[180px] md:max-w-[220px] text-left flex-shrink" onclick="toggleChalkMenu()">
-                <img id="paint-taskbar-icon" src="icons/Paint.png" onerror="this.onerror=null; this.src='https://icons.iconarchive.com/icons/microsoft/windows-xp/32/Paint-icon.png';" class="drop-shadow-sm flex-shrink-0 h-3.5 md:h-4 w-auto" style="transform: scale(var(--paint-taskbar-icon-scale, 1)); transform-origin: center;"> 
+                <img id="paint-taskbar-icon" src="icons/Paint.png" onerror="this.onerror=null; this.src='https://icons.iconarchive.com/icons/microsoft/windows-xp/32/Paint-icon.png';" class="drop-shadow-sm flex-shrink-0 h-3.5 md:h-4 w-auto" style="transform: scale(2); transform-origin: center;"> 
                 <span class="truncate pr-1 md:pr-2 block w-full text-white">Paint.exe</span>
             </button>
-        </div>
-
-        <!-- DEBUG: Paint taskbar icon size slider (remove once value is baked in) -->
-        <div id="paint-icon-debug-panel" class="fixed bottom-[45px] left-2 md:left-4 z-[200002] bg-[#ece9d8] border-2 border-[#0055e5] rounded shadow-lg p-2 md:p-3 text-xs font-['Tahoma'] text-black flex flex-col gap-1 w-[220px]">
-            <div class="font-bold">Paint taskbar icon size (debug)</div>
-            <div class="flex items-center gap-2">
-                <input type="range" id="paint-icon-slider" min="0.5" max="3" step="0.1" value="1" class="flex-grow" oninput="document.documentElement.style.setProperty('--paint-taskbar-icon-scale', this.value); document.getElementById('paint-icon-slider-value').textContent = this.value + 'x';">
-                <span id="paint-icon-slider-value" class="w-12 text-right">1x</span>
-            </div>
         </div>
         <div class="h-full flex items-center px-3 md:px-4 text-[11px] md:text-xs bg-gradient-to-b from-[#0F8BE6] to-[#0A63B4] text-white border-l border-[#09519A] shadow-[inset_1px_0_3px_rgba(255,255,255,0.3)]">
             <div class="hidden md:flex relative w-4 h-4 mr-2 items-center justify-center">
@@ -2193,14 +2184,16 @@
                 }
 
                 if (introVid) {
+                    // Proactively start buffering the loop video the moment the intro
+                    // begins, so it has real frame data ready well before it's needed.
+                    if (loopVid) loopVid.load();
+
                     introVid.playbackRate = 1.0;
                     introVid.play().then(() => {
                         setTimeout(() => introVid.playbackRate = 0.75, 1000);
                     }).catch(() => {
                         introVid.classList.add('hidden');
-                        loopVid.classList.remove('hidden');
-                        if (loopVid) loopVid.playbackRate = 0.75;
-                        loopVid.play().catch(() => loopVid.classList.add('hidden'));
+                        switchToLoopVideo();
                     });
                 }
                 
@@ -2247,15 +2240,27 @@
                 }, 850);
             }
 
-            if (introVid) {
-                introVid.addEventListener('ended', () => {
-                    introVid.classList.add('hidden');
+            // Swaps from the intro video to the loop video without ever revealing a blank
+            // frame: the loop video is only made visible once it's confirmed to actually
+            // be rendering (the 'playing' event), never just on play() being called.
+            function switchToLoopVideo() {
+                if (!loopVid) return;
+                loopVid.playbackRate = 0.75;
+                const reveal = () => {
+                    if (introVid) introVid.classList.add('hidden');
                     loopVid.classList.remove('hidden');
-                    if(loopVid) {
-                        loopVid.playbackRate = 0.75;
-                        loopVid.play().catch(() => loopVid.classList.add('hidden'));
-                    }
-                });
+                };
+                if (loopVid.readyState >= 3) {
+                    // Already has a decoded frame ready (HAVE_FUTURE_DATA or better) - safe to reveal as soon as play() resolves.
+                    loopVid.play().then(reveal).catch(() => loopVid.classList.add('hidden'));
+                } else {
+                    loopVid.addEventListener('playing', reveal, { once: true });
+                    loopVid.play().catch(() => loopVid.classList.add('hidden'));
+                }
+            }
+
+            if (introVid) {
+                introVid.addEventListener('ended', switchToLoopVideo);
             }
             if (loopVid) loopVid.playbackRate = 0.75;
         });
