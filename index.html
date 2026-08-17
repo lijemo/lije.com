@@ -2280,6 +2280,13 @@
                     });
                     
                     setTimeout(() => {
+                        // Re-center first, while the window is still at its true,
+                        // unanimated size - measuring it mid-animation (e.g. after
+                        // animate() has started applying its scale(0.8) keyframe)
+                        // would center a box that's temporarily smaller than it
+                        // really is, landing the real window off-position.
+                        centerPortfolio();
+
                         const currentTransform = mainWindow.style.transform || `translate3d(0px, 0px, 0)`;
                         const popAnim = mainWindow.animate([
                             { opacity: 0, transform: `${currentTransform} scale(0.8)`, offset: 0 },
@@ -2296,8 +2303,6 @@
                             mainWindow.style.opacity = '1';
                         };
                         setTimeout(() => mainWindow.classList.remove('opacity-0'), 500);
-                        
-                        centerPortfolio();
                     }, totalDelay + 400);
                 }, 850);
             }
