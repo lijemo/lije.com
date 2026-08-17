@@ -232,7 +232,7 @@
         </video>
     </div>
 
-    <div class="absolute top-4 left-4 flex flex-col gap-5 md:gap-6 w-20 md:w-24 z-10">
+    <div class="absolute top-4 left-4 flex flex-col gap-5 md:gap-6 w-20 md:w-24 z-30">
         <!-- My Portfolio Icon -->
         <div class="desktop-icon flex flex-col items-center cursor-pointer text-center group" onclick="handleDesktopIcon(event, restoreWindow)">
             <img src="icons/Lije_Portfolio.png" onerror="this.onerror=null; this.src='https://win98icons.alexmeub.com/icons/png/computer_explorer_cool-0.png';" class="desktop-icon-img mb-1 pointer-events-none drop-shadow-md" alt="Computer">
@@ -562,13 +562,17 @@
                 <div id="games" class="tab-content hidden h-full bg-white overflow-y-auto p-4 md:p-6">
                     <div class="flex flex-col gap-6 md:gap-10 w-full">
                         <div class="flex flex-row items-center justify-center gap-3 md:gap-4 portfolio-item w-full">
-                            <img src="games/CatchTheFlies_Thumbnail.gif" alt="Catch the Flies Thumbnail" class="object-cover w-[30%] md:w-[23%] flex-shrink-0 game-thumb-img">
-                            <img src="games/CatchTheFlies_Info.jpg" alt="Catch the Flies Info" class="object-contain w-[65%] md:w-[70%] flex-shrink-0 game-info-img">
+                            <a href="https://www.snapchat.com/unlock/?type=SNAPCODE&uuid=0007642dbbae4a239f808a6d541b31fd&metadata=01" target="_blank" rel="noopener noreferrer" class="contents game-thumb-link" onclick="return handleGameThumbClick(event)">
+                                <img src="games/CatchTheFlies_Thumbnail.gif" alt="Catch the Flies Thumbnail" class="object-cover w-[27%] md:w-[23%] flex-shrink-0">
+                            </a>
+                            <img src="games/CatchTheFlies_Info.jpg" alt="Catch the Flies Info" class="object-contain w-[70%] flex-shrink-0">
                         </div>
                         
                         <div class="flex flex-row items-center justify-center gap-3 md:gap-4 portfolio-item w-full">
-                            <img src="games/UnderwaterPlasticPickup_Thumbnail.gif" alt="Underwater Plastic Pickup Thumbnail" class="object-cover w-[30%] md:w-[23%] flex-shrink-0 game-thumb-img">
-                            <img src="games/UnderwaterPlasticPickup_Info.jpg" alt="Underwater Plastic Pickup Info" class="object-contain w-[65%] md:w-[70%] flex-shrink-0 game-info-img">
+                            <a href="https://www.snapchat.com/unlock/?type=SNAPCODE&uuid=09dd8da2b2974b2a8b5466555ec26553&metadata=01" target="_blank" rel="noopener noreferrer" class="contents game-thumb-link" onclick="return handleGameThumbClick(event)">
+                                <img src="games/UnderwaterPlasticPickup_Thumbnail.gif" alt="Underwater Plastic Pickup Thumbnail" class="object-cover w-[27%] md:w-[23%] flex-shrink-0">
+                            </a>
+                            <img src="games/UnderwaterPlasticPickup_Info.jpg" alt="Underwater Plastic Pickup Info" class="object-contain w-[70%] flex-shrink-0">
                         </div>
 
                         <a href="games/minigame-dungeon.html" target="_blank" rel="noopener noreferrer" id="minigame-dungeon-link" class="flex flex-col md:flex-row items-center justify-center gap-3 md:gap-4 portfolio-item w-full cursor-pointer hover:opacity-90 transition-opacity">
@@ -807,19 +811,6 @@
                 <span class="truncate pr-1 md:pr-2 block w-full text-white">Paint.exe</span>
             </button>
         </div>
-
-        <!-- DEBUG: Games page mobile image width sliders (remove once values are baked in) -->
-        <div id="game-img-debug-panel" class="fixed top-2 left-2 md:top-4 md:left-4 z-[200002] bg-[#ece9d8] border-2 border-[#0055e5] rounded shadow-lg p-2 md:p-3 text-xs font-['Tahoma'] text-black flex flex-col gap-2 w-[240px]">
-            <div class="font-bold">Games page widths, mobile only (debug)</div>
-            <div>
-                <div class="flex justify-between"><span>Thumbnail GIF</span><span id="game-thumb-width-value">30%</span></div>
-                <input type="range" id="game-thumb-width-slider" min="10" max="90" step="1" value="30" class="w-full" oninput="currentGameThumbWidthPct = parseFloat(this.value); updateGameImageScale(); document.getElementById('game-thumb-width-value').textContent = this.value + '%';">
-            </div>
-            <div>
-                <div class="flex justify-between"><span>Info PNG/JPG</span><span id="game-info-width-value">65%</span></div>
-                <input type="range" id="game-info-width-slider" min="10" max="90" step="1" value="65" class="w-full" oninput="currentGameInfoWidthPct = parseFloat(this.value); updateGameImageScale(); document.getElementById('game-info-width-value').textContent = this.value + '%';">
-            </div>
-        </div>
         <div class="h-full flex items-center px-3 md:px-4 text-[11px] md:text-xs bg-gradient-to-b from-[#0F8BE6] to-[#0A63B4] text-white border-l border-[#09519A] shadow-[inset_1px_0_3px_rgba(255,255,255,0.3)]">
             <div class="hidden md:flex relative w-4 h-4 mr-2 items-center justify-center">
                 <img src="icons/Sound.png" onerror="this.onerror=null; this.src='https://icons.iconarchive.com/icons/microsoft/windows-xp/16/Volume-icon.png';" class="absolute object-contain scale-[2] transform origin-center">
@@ -1033,7 +1024,7 @@
             marginLineWidth: 2,
             fontSize: 14
         };
-        const BINDER_MOBILE_SCALE = 0.85;
+        const BINDER_MOBILE_SCALE = 0.9;
 
         function updateBinderScale(scale) {
             const binderPaper = document.getElementById('binder-paper');
@@ -1090,24 +1081,27 @@
         window.addEventListener('resize', updateAddressReadonly);
         updateAddressReadonly();
 
-        // Games page thumbnail/info image widths - mobile only. Desktop keeps its
-        // existing Tailwind widths (23%/70%) untouched; these percentages only ever
-        // apply as an inline-style override below the 768px breakpoint, and are
-        // cleared entirely above it so desktop is never affected.
-        let currentGameThumbWidthPct = 30;
-        let currentGameInfoWidthPct = 65;
+        // Games page thumbnail GIFs link out to Snapchat Lenses, but that only makes
+        // sense on a phone with the Snapchat app installed - on desktop the link
+        // works technically but is useless (no app to open it, no stats), so it's
+        // disabled there entirely rather than just being a dead-end click.
+        function handleGameThumbClick(event) {
+            if (window.innerWidth > 768) {
+                event.preventDefault();
+                return false;
+            }
+            return true;
+        }
 
-        function updateGameImageScale() {
+        function updateGameThumbLinkState() {
             const isMobile = window.innerWidth <= 768;
-            document.querySelectorAll('.game-thumb-img').forEach(img => {
-                img.style.width = isMobile ? currentGameThumbWidthPct + '%' : '';
-            });
-            document.querySelectorAll('.game-info-img').forEach(img => {
-                img.style.width = isMobile ? currentGameInfoWidthPct + '%' : '';
+            document.querySelectorAll('.game-thumb-link').forEach(a => {
+                a.style.cursor = isMobile ? 'pointer' : 'default';
+                a.style.pointerEvents = isMobile ? 'auto' : 'none';
             });
         }
-        window.addEventListener('resize', updateGameImageScale);
-        updateGameImageScale();
+        window.addEventListener('resize', updateGameThumbLinkState);
+        updateGameThumbLinkState();
 
         function makeDraggable(headerId, windowId) {
             const header = document.getElementById(headerId);
