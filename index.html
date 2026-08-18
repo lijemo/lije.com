@@ -31,6 +31,8 @@
     <!-- Preload icons that load in visibly late otherwise (e.g. flashing in
          the instant the Recycle Bin is first opened) -->
     <link rel="preload" as="image" href="icons/Folder.png">
+    <link rel="preload" as="image" href="icons/fish.png">
+    <link rel="preload" as="image" href="icons/Secret.png">
 
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -259,7 +261,7 @@
         </video>
     </div>
 
-    <div class="absolute top-4 left-4 flex flex-col gap-5 md:gap-6 w-20 md:w-24 z-30">
+    <div id="main-desktop-icons" class="absolute top-4 left-4 flex flex-col gap-5 md:gap-6 w-20 md:w-24 z-30">
         <!-- My Portfolio Icon -->
         <div class="desktop-icon flex flex-col items-center cursor-pointer text-center group" onclick="handleDesktopIcon(event, restoreWindow)">
             <img src="icons/Lije_Portfolio.png" onerror="this.onerror=null; this.src='https://win98icons.alexmeub.com/icons/png/computer_explorer_cool-0.png';" class="desktop-icon-img mb-1 pointer-events-none drop-shadow-md" alt="Computer">
@@ -1141,6 +1143,27 @@
         window.addEventListener('resize', updateGameThumbLinkState);
         updateGameThumbLinkState();
 
+        // Desktop icons keep their normal full size on any screen where they fit -
+        // this only kicks in and shrinks them (uniformly, same proportions) when the
+        // browser window gets too short vertically for them all to fit otherwise.
+        function updateDesktopIconScale() {
+            const container = document.getElementById('main-desktop-icons');
+            if (!container) return;
+            container.style.transform = 'none';
+            const naturalHeight = container.scrollHeight;
+            const topOffset = container.getBoundingClientRect().top;
+            const bottomClearance = 45; // stay clear of the taskbar
+            const availableHeight = window.innerHeight - topOffset - bottomClearance;
+            let scale = 1;
+            if (availableHeight > 0 && naturalHeight > availableHeight) {
+                scale = availableHeight / naturalHeight;
+            }
+            container.style.transform = `scale(${scale})`;
+            container.style.transformOrigin = 'top left';
+        }
+        window.addEventListener('resize', updateDesktopIconScale);
+        updateDesktopIconScale();
+
         function makeDraggable(headerId, windowId) {
             const header = document.getElementById(headerId);
             const win = document.getElementById(windowId);
@@ -1502,7 +1525,7 @@
                     </span>
                     <button class="xp-control-btn xp-btn-close shrink-0" onclick="document.getElementById('${id}').remove()">X</button>
                 </div>
-                <div class="p-1 bg-[#ece9d8] flex items-center justify-center">
+                <div class="p-0 bg-[#ece9d8] flex items-center justify-center leading-[0]">
                     <img src="${src}" alt="FishPopup__${num}.png" class="block w-full h-auto object-contain" onerror="this.onerror=null; this.alt='(missing image)';">
                 </div>
             `;
