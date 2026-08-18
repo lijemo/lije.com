@@ -28,6 +28,10 @@
     <link rel="icon" type="image/png" href="/favicon.png">
     <link rel="apple-touch-icon" href="/favicon.png">
 
+    <!-- Preload icons that load in visibly late otherwise (e.g. flashing in
+         the instant the Recycle Bin is first opened) -->
+    <link rel="preload" as="image" href="icons/Folder.png">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @font-face {
@@ -476,47 +480,15 @@
                 <!-- Reel Tab -->
                 <div id="reel" class="tab-content h-full w-full flex items-center justify-center bg-black md:bg-white md:p-3 overflow-hidden relative">
                     <iframe id="vimeo-player" data-src="https://player.vimeo.com/video/285639811?autoplay=1&loop=1&background=1" class="w-full h-full md:max-h-full aspect-video md:shadow-md border-0" style="max-height: 100%; max-width: 100%;" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
-                    <div id="reel-loading-overlay" class="absolute inset-0 flex flex-col items-center justify-center gap-3 text-white bg-black pointer-events-none">
-                        <span class="text-xs md:text-sm tracking-wide font-['Tahoma']">loading animation reel</span>
-                        <div class="w-5 h-5 md:w-6 md:h-6 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                    </div>
                     <script>
                         // Start the reel loading as early as physically possible, rather than
                         // waiting for the entire boot animation to finish first, so it has a
-                        // real head start buffering. It plays (and loops) automatically as soon
-                        // as it's ready, same as before. While it's loading, the black iframe is
-                        // covered by a "loading animation reel" overlay instead of showing raw
-                        // black - the overlay is removed the moment Vimeo actually reports
-                        // playback has begun (via its postMessage event API), with a timeout
-                        // fallback in case that event is ever missed.
+                        // real head start buffering before it's ever visible.
                         (function() {
                             var vimeoPlayer = document.getElementById('vimeo-player');
-                            var overlay = document.getElementById('reel-loading-overlay');
-
-                            function hideOverlay() {
-                                if (overlay) overlay.style.display = 'none';
-                            }
-
-                            window.addEventListener('message', function(e) {
-                                if (!vimeoPlayer || e.source !== vimeoPlayer.contentWindow) return;
-                                try {
-                                    var data = JSON.parse(e.data);
-                                    if (data.event === 'play' || data.event === 'playing') {
-                                        hideOverlay();
-                                    }
-                                } catch (err) { /* not a JSON message from the player, ignore */ }
-                            });
-
                             if (vimeoPlayer && !vimeoPlayer.src) {
                                 vimeoPlayer.src = vimeoPlayer.getAttribute('data-src');
-                                vimeoPlayer.addEventListener('load', function() {
-                                    vimeoPlayer.contentWindow.postMessage(JSON.stringify({ method: 'addEventListener', value: 'play' }), '*');
-                                });
                             }
-
-                            // Safety net: never leave the overlay stuck up if the play event
-                            // is missed for any reason (slow connection, blocked message, etc).
-                            setTimeout(hideOverlay, 10000);
                         })();
                     </script>
                     <div class="portfolio-item hidden"></div>
@@ -1484,17 +1456,32 @@
             // Preload the image before creating the window at all, so the window
             // never appears mid-load / visibly pops the image in after the fact.
             const preloadImg = new Image();
-            const create = () => createFishPopupWindow(index, num, src);
+            const create = () => createFishPopupWindow(index, num, src, preloadImg.naturalWidth, preloadImg.naturalHeight);
             preloadImg.onload = create;
             preloadImg.onerror = create;
             preloadImg.src = src;
         }
 
-        function createFishPopupWindow(index, num, src) {
-            const maxPopupWidth = (window.innerWidth * FISH_POPUP_MAX_VW / 100) + FISH_POPUP_CHROME_W;
-            const maxPopupHeight = (window.innerHeight * FISH_POPUP_MAX_VH / 100) + FISH_POPUP_CHROME_H;
-            const maxLeft = Math.max(0, window.innerWidth - maxPopupWidth);
-            const maxTop = Math.max(0, window.innerHeight - 35 - maxPopupHeight);
+        function createFishPopupWindow(index, num, src, naturalW, naturalH) {
+            const maxImgWidth = window.innerWidth * FISH_POPUP_MAX_VW / 100;
+            const maxImgHeight = window.innerHeight * FISH_POPUP_MAX_VH / 100;
+
+            // Compute the image's actual rendered size ourselves (matching what
+            // object-contain would do), so the popup's width can be set to exactly
+            // match the image - not the title bar text, which is what was causing
+            // uneven left/right padding on narrow/tall images.
+            let renderedWidth = maxImgWidth;
+            let renderedHeight = maxImgHeight;
+            if (naturalW > 0 && naturalH > 0) {
+                const scale = Math.min(maxImgWidth / naturalW, maxImgHeight / naturalH, 1);
+                renderedWidth = naturalW * scale;
+                renderedHeight = naturalH * scale;
+            }
+
+            const popupWidth = renderedWidth + FISH_POPUP_CHROME_W;
+            const popupHeight = renderedHeight + FISH_POPUP_CHROME_H;
+            const maxLeft = Math.max(0, window.innerWidth - popupWidth);
+            const maxTop = Math.max(0, window.innerHeight - 35 - popupHeight);
             const left = Math.random() * maxLeft;
             const top = Math.random() * maxTop;
 
@@ -1503,19 +1490,20 @@
 
             const popup = document.createElement('div');
             popup.id = id;
-            popup.className = 'fish-popup xp-window flex flex-col fixed w-auto h-auto';
+            popup.className = 'fish-popup xp-window flex flex-col fixed';
             popup.style.left = left + 'px';
             popup.style.top = top + 'px';
+            popup.style.width = renderedWidth + 'px';
             popup.style.zIndex = highestZIndex;
             popup.innerHTML = `
-                <div class="fish-popup-header xp-title-bar text-white px-2 py-[2px] flex justify-between items-center select-none shrink-0">
-                    <span class="flex items-center gap-1 text-[10px] tracking-wide drop-shadow-md truncate">
+                <div class="fish-popup-header xp-title-bar text-white px-2 py-[2px] flex justify-between items-center select-none shrink-0 overflow-hidden">
+                    <span class="flex items-center gap-1 text-[10px] tracking-wide drop-shadow-md truncate min-w-0">
                         FishPopup__${num}.png
                     </span>
-                    <button class="xp-control-btn xp-btn-close" onclick="document.getElementById('${id}').remove()">X</button>
+                    <button class="xp-control-btn xp-btn-close shrink-0" onclick="document.getElementById('${id}').remove()">X</button>
                 </div>
                 <div class="p-1 bg-[#ece9d8] flex items-center justify-center">
-                    <img src="${src}" alt="FishPopup__${num}.png" class="block w-auto h-auto object-contain" style="max-width: ${FISH_POPUP_MAX_VW}vw; max-height: ${FISH_POPUP_MAX_VH}vh;" onerror="this.onerror=null; this.alt='(missing image)';">
+                    <img src="${src}" alt="FishPopup__${num}.png" class="block w-full h-auto object-contain" onerror="this.onerror=null; this.alt='(missing image)';">
                 </div>
             `;
             document.body.appendChild(popup);
