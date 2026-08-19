@@ -2840,10 +2840,6 @@
                 lastMouseMoveTime = now;
             }
 
-            function onKeyDown(e) {
-                if (e.key === 'Escape') closeIguanaEasterEgg();
-            }
-
             window.openIguanaEasterEgg = function() {
                 const overlay = document.getElementById('iguana-overlay');
                 canvas = document.getElementById('iguana-canvas');
@@ -2857,49 +2853,35 @@
                 lastSpeedUpdateTime = performance.now();
                 startTime = performance.now();
 
+                // This easter egg has no exit once triggered - only refreshing the
+                // page dismisses it - so there's nothing here to ever clean up or
+                // guard against being closed mid-load.
+                window.addEventListener('resize', resizeCanvas);
+                document.addEventListener('mousemove', onMouseMove);
+
                 if (imagesReady) {
                     // Already cached from a previous open - real photo dimensions are
                     // known, so build against the accurate rect and start rendering
                     // immediately.
                     bgRect = computeBgRect(canvas.width, canvas.height);
                     buildCloth();
-                    window.addEventListener('resize', resizeCanvas);
-                    document.addEventListener('mousemove', onMouseMove);
-                    document.addEventListener('keydown', onKeyDown);
                     if (animId) cancelAnimationFrame(animId);
                     loop();
                 } else {
                     // First-ever open: the overlay is already visible (solid black,
                     // via its own background) but the render loop doesn't start until
                     // the real photo has actually loaded and buildCloth() has run
-                    // against its true dimensions. Starting the loop immediately with
-                    // a fallback layout, then repositioning once the image loads,
-                    // caused an intermittent visible "jump" mid-animation - visible
-                    // only when the image happened to take a bit longer to load,
-                    // which is why it wasn't happening every time.
-                    window.addEventListener('resize', resizeCanvas);
-                    document.addEventListener('mousemove', onMouseMove);
-                    document.addEventListener('keydown', onKeyDown);
+                    // against its true dimensions - starting immediately with a
+                    // fallback layout, then repositioning once the image loads,
+                    // caused a visible mid-animation jump.
                     loadImages(() => {
                         imagesReady = true;
-                        // Guard against the user having already closed the overlay
-                        // while the images were still loading - without this, the
-                        // loop would start running invisibly in the background.
-                        if (document.getElementById('iguana-overlay').classList.contains('hidden')) return;
                         bgRect = computeBgRect(canvas.width, canvas.height);
                         buildCloth();
                         if (animId) cancelAnimationFrame(animId);
                         loop();
                     });
                 }
-            };
-
-            window.closeIguanaEasterEgg = function() {
-                document.getElementById('iguana-overlay').classList.add('hidden');
-                if (animId) { cancelAnimationFrame(animId); animId = null; }
-                window.removeEventListener('resize', resizeCanvas);
-                document.removeEventListener('mousemove', onMouseMove);
-                document.removeEventListener('keydown', onKeyDown);
             };
 
             // Trigger: the browser natively populates dataTransfer when you drag a
@@ -2920,7 +2902,6 @@
          pole simulated with cloth physics, mouse-directed wind, whip-to-tear. -->
     <div id="iguana-overlay" class="fixed inset-0 z-[999999] hidden bg-black overflow-hidden">
         <canvas id="iguana-canvas" class="absolute inset-0 w-full h-full block"></canvas>
-        <button onclick="closeIguanaEasterEgg()" class="fixed top-3 right-3 z-[1000000] xp-control-btn xp-btn-close w-6 h-6 flex items-center justify-center text-sm font-bold">X</button>
     </div>
 
 </body>
