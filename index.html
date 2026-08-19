@@ -861,12 +861,12 @@
 
     <!-- Paint Menu -->
     <div id="chalk-menu" class="hidden fixed bottom-[35px] w-36 md:w-40 bg-white border border-[#aca899] shadow-[2px_2px_5px_rgba(0,0,0,0.5)] z-[200001] flex flex-col p-1 font-['Tahoma'] text-xs text-black">
-        <div class="px-3 md:px-4 py-1 hover:bg-[#316ac5] hover:text-white cursor-pointer flex items-center gap-2" onclick="setChalkColor('rgba(0,0,0,0.9)')"><div class="w-3 h-3 border border-gray-400 bg-black"></div> Black</div>
-        <div class="px-3 md:px-4 py-1 hover:bg-[#316ac5] hover:text-white cursor-pointer flex items-center gap-2" onclick="setChalkColor('rgba(255,255,255,0.9)')"><div class="w-3 h-3 border border-gray-400 bg-white"></div> White</div>
         <div class="px-3 md:px-4 py-1 hover:bg-[#316ac5] hover:text-white cursor-pointer flex items-center gap-2" onclick="setChalkColor('rgba(255,0,0,0.9)')"><div class="w-3 h-3 border border-gray-400 bg-red-500"></div> Red</div>
         <div class="px-3 md:px-4 py-1 hover:bg-[#316ac5] hover:text-white cursor-pointer flex items-center gap-2" onclick="setChalkColor('rgba(255,255,0,0.9)')"><div class="w-3 h-3 border border-gray-400 bg-yellow-400"></div> Yellow</div>
         <div class="px-3 md:px-4 py-1 hover:bg-[#316ac5] hover:text-white cursor-pointer flex items-center gap-2" onclick="setChalkColor('rgba(0,128,0,0.9)')"><div class="w-3 h-3 border border-gray-400 bg-green-600"></div> Green</div>
         <div class="px-3 md:px-4 py-1 hover:bg-[#316ac5] hover:text-white cursor-pointer flex items-center gap-2" onclick="setChalkColor('rgba(0,0,255,0.9)')"><div class="w-3 h-3 border border-gray-400 bg-blue-600"></div> Blue</div>
+        <div class="px-3 md:px-4 py-1 hover:bg-[#316ac5] hover:text-white cursor-pointer flex items-center gap-2" onclick="setChalkColor('rgba(0,0,0,0.9)')"><div class="w-3 h-3 border border-gray-400 bg-black"></div> Black</div>
+        <div class="px-3 md:px-4 py-1 hover:bg-[#316ac5] hover:text-white cursor-pointer flex items-center gap-2" onclick="setChalkColor('rgba(255,255,255,0.9)')"><div class="w-3 h-3 border border-gray-400 bg-white"></div> White</div>
         <div class="border-t border-[#aca899] my-1"></div>
         <div class="px-3 md:px-4 py-1 hover:bg-[#316ac5] hover:text-white cursor-pointer" onclick="clearChalk()">Clear</div>
         <div class="px-3 md:px-4 py-1 hover:bg-[#316ac5] hover:text-white cursor-pointer font-bold" onclick="endChalk()">Close</div>
@@ -2201,7 +2201,7 @@
         let currentChalkStroke = [];
         let isChalking = false;
         let chalkActive = false;
-        let chalkColor = 'rgba(0, 0, 0, 0.9)';
+        let chalkColor = 'rgba(255, 0, 0, 0.9)';
         let lastWiggleTime = Date.now();
 
         function resizeChalkCanvas() {
