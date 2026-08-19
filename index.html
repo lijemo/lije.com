@@ -1865,24 +1865,27 @@
         resizeBubblesCanvas();
 
         function startBubbles() {
-            if (bubblesAnimationId) {
-                cancelAnimationFrame(bubblesAnimationId);
-                clearInterval(bubblesInterval);
-                bubblesAnimationId = null;
-                bubblesInterval = null;
-                activeBubbles = [];
-                const canvas = document.getElementById('bubbles-canvas');
-                const ctx = canvas.getContext('2d');
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-            } else {
-                initBubbles();
-            }
+            // Once started, this can't be turned off from the icon anymore - only a
+            // page refresh/revisit stops it. Clicking again while already running
+            // is just a no-op rather than toggling it closed.
+            if (bubblesAnimationId) return;
+            initBubbles();
         }
 
         function initBubbles() {
             const canvas = document.getElementById('bubbles-canvas');
             const ctx = canvas.getContext('2d');
-            
+
+            // Movement is time-based (real elapsed seconds), not frame-count-based -
+            // this keeps bubble speed consistent regardless of how often the browser
+            // actually fires requestAnimationFrame. Browsers commonly throttle rAF
+            // during idle periods (especially on mobile, to save battery) and run it
+            // at full rate the moment there's active touch/mouse input; a pure
+            // per-frame pixel increment would then visibly speed up during
+            // interaction just because more frames are firing per second, even
+            // though each individual frame moves the same fixed distance.
+            let lastBubbleFrameTime = performance.now();
+
             const isMobile = window.innerWidth <= 768;
             let bubbleCfg = {
                 speed: isMobile ? 0.75 : 0.5,
@@ -1896,12 +1899,12 @@
             };
 
             class Bubble {
-                constructor() {
+                constructor(spawnX) {
                     this.radius = bubbleCfg.size; 
-                    this.x = this.radius + Math.random() * (canvas.width * 0.3);
+                    this.x = spawnX !== undefined ? spawnX : (this.radius + Math.random() * (canvas.width * 0.3));
                     this.y = isMobile ? (canvas.height - this.radius - 10) : (canvas.height + this.radius);
                     
-                    let angle = -Math.PI/2 + (Math.random() * 0.5 - 0.25);
+                    let angle = -Math.PI/2 + (Math.random() * 0.9 - 0.45);
                     let baseSpeed = 2.5;
                     this.vx = Math.cos(angle) * baseSpeed; 
                     this.vy = Math.sin(angle) * baseSpeed;
@@ -1957,10 +1960,10 @@
                     ctx.drawImage(this.cacheCanvas, this.x - cx, this.y - cy);
                 }
 
-                update() {
+                update(deltaFrames) {
                     this.radius = bubbleCfg.size; 
-                    this.x += this.vx * bubbleCfg.speed;
-                    this.y += this.vy * bubbleCfg.speed;
+                    this.x += this.vx * bubbleCfg.speed * deltaFrames;
+                    this.y += this.vy * bubbleCfg.speed * deltaFrames;
 
                     if (this.x - this.radius < 0) {
                         this.x = this.radius;
@@ -1982,9 +1985,35 @@
                 }
             }
 
+            // Picks a spawn X that doesn't land a new bubble already touching/
+            // overlapping an existing one - retries a handful of times before just
+            // using its best attempt, so the screen never runs out of valid spots.
+            function findBubbleSpawnX(radius) {
+                const minX = radius;
+                const maxX = radius + canvas.width * 0.45;
+                const spawnY = isMobile ? (canvas.height - radius - 10) : (canvas.height + radius);
+                const maxAttempts = 15;
+                // A real gap between newly-spawned bubbles, not just barely-not-touching -
+                // a bubble that spawns right at the edge of contact can drift into its
+                // neighbor within the first frame or two before physics separates them again.
+                const spawnBuffer = radius * 0.5;
+                let candidateX = minX + Math.random() * (maxX - minX);
+
+                for (let attempt = 0; attempt < maxAttempts; attempt++) {
+                    candidateX = minX + Math.random() * (maxX - minX);
+                    const overlaps = activeBubbles.some(b => {
+                        const dx = candidateX - b.x;
+                        const dy = spawnY - b.y;
+                        return Math.sqrt(dx * dx + dy * dy) < (radius + b.radius + spawnBuffer);
+                    });
+                    if (!overlaps) break;
+                }
+                return candidateX;
+            }
+
             bubblesInterval = setInterval(() => {
                 if (activeBubbles.length < bubbleCfg.max) {
-                    activeBubbles.push(new Bubble());
+                    activeBubbles.push(new Bubble(findBubbleSpawnX(bubbleCfg.size)));
                 }
             }, 1000);
 
@@ -2037,6 +2066,15 @@
             }
 
             function animate() {
+                const now = performance.now();
+                // Normalized to a 60fps baseline, so existing speed values/feel are
+                // unchanged when frame rate is normal - only deviations from that
+                // get corrected for. Capped to avoid a big jump if rAF was paused
+                // for a while (e.g. tab was backgrounded).
+                let deltaFrames = (now - lastBubbleFrameTime) / (1000 / 60);
+                deltaFrames = Math.min(Math.max(deltaFrames, 0), 5);
+                lastBubbleFrameTime = now;
+
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 
                 if (activeBubbles.length > bubbleCfg.max) {
@@ -2047,7 +2085,7 @@
 
                 for (let i = activeBubbles.length - 1; i >= 0; i--) {
                     let b = activeBubbles[i];
-                    b.update();
+                    b.update(deltaFrames);
                     b.draw();
                     
                     if (b.x < -100 || b.x > canvas.width + 100 || b.y < -100) {
@@ -2321,6 +2359,12 @@
             updateChalkUI();
         }
 
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && chalkActive) {
+                endChalk();
+            }
+        });
+
         function updateChalkUI() {
             const taskbarBtn = document.getElementById('taskbar-chalk-tab');
             if (chalkActive) {
@@ -2471,6 +2515,413 @@
             }
             if (loopVid) loopVid.playbackRate = 0.75;
         });
+
+        // ============================================================
+        // Iguana Easter Egg
+        // Trigger: select "secret about box" (typed into the address bar)
+        // and drag it onto the desktop.
+        // ============================================================
+        (function() {
+            const GRID_COLS = 18;
+            const GRID_ROWS = 11;
+            const GRAVITY = 0.12;
+            const DAMPING = 0.985;
+            const SPRING_ITERATIONS = 2;
+            const TEAR_THRESHOLD = 3400; // px/sec sustained (time-weighted average, not a raw sum) - requires real, repeated whipping; casual/brisk movement tops out well below this
+
+            let canvas, ctx;
+            let points = [];
+            let springs = [];
+            let poleX, poleTopY, poleBottomY;
+            let flagW, flagH;
+            let bgImg, flagImg;
+            let bgRect = null; // {x, y, w, h} - the background photo's actual rendered
+                                // rect on canvas (contain-fit), so the pole/flag can be
+                                // positioned relative to the PHOTO, not the raw window.
+
+            function computeBgRect(w, h) {
+                if (!bgImg || !bgImg.naturalWidth) {
+                    return { x: 0, y: 0, w, h };
+                }
+                const scale = Math.min(w / bgImg.naturalWidth, h / bgImg.naturalHeight);
+                const bw = bgImg.naturalWidth * scale, bh = bgImg.naturalHeight * scale;
+                return { x: (w - bw) / 2, y: (h - bh) / 2, w: bw, h: bh };
+            }
+            let imagesReady = false;
+            let torn = false;
+            let animId = null;
+            let windX = 1.2, windY = 0; // gentle ambient breeze to the right
+            let targetWindX = 1.2, targetWindY = 0;
+            let lastMouseX = null, lastMouseY = null, lastMouseMoveTime = 0;
+            let lastSpeedUpdateTime = 0; // shared timestamp so decay never double-applies
+
+            function decayRecentSpeed(now) {
+                const dt = Math.max(0, now - lastSpeedUpdateTime);
+                if (dt <= 0) return;
+                const halfLifeMs = 220;
+                recentSpeed *= Math.pow(0.5, dt / halfLifeMs);
+                lastSpeedUpdateTime = now;
+            }
+            let recentSpeed = 0; // decaying rolling measure of how hard the mouse is whipping
+            let startTime = 0;
+
+            let poleWidth = 12;
+
+            function buildCloth() {
+                points = [];
+                springs = [];
+
+                const rect = bgRect || { x: 0, y: 0, w: window.innerWidth, h: window.innerHeight };
+
+                // Positioned and sized as percentages of the PHOTO's rendered rect, not
+                // the raw window - so the pole/flag stay in the same place and scale
+                // relative to the photo regardless of window size or aspect ratio,
+                // matching the original (rather than drifting further left on wider
+                // windows the way a window-relative position would).
+                poleX = rect.x + rect.w * 0.12;
+                poleTopY = rect.y + rect.h * 0.16;
+                poleBottomY = canvas.height; // always reaches the bottom of the window, not just the photo
+                flagH = rect.h * 0.36;
+                flagW = rect.w * 0.30;
+                poleWidth = Math.max(6, rect.h * 0.012);
+
+                const cellW = flagW / GRID_COLS;
+                const cellH = flagH / GRID_ROWS;
+
+                for (let row = 0; row <= GRID_ROWS; row++) {
+                    for (let col = 0; col <= GRID_COLS; col++) {
+                        const x = poleX + col * cellW;
+                        const y = poleTopY + row * cellH;
+                        points.push({
+                            x, y, oldX: x, oldY: y,
+                            pinned: col === 0,
+                            col, row
+                        });
+                    }
+                }
+
+                const idx = (col, row) => row * (GRID_COLS + 1) + col;
+                for (let row = 0; row <= GRID_ROWS; row++) {
+                    for (let col = 0; col <= GRID_COLS; col++) {
+                        if (col < GRID_COLS) springs.push({ a: idx(col, row), b: idx(col + 1, row), rest: cellW });
+                        if (row < GRID_ROWS) springs.push({ a: idx(col, row), b: idx(col, row + 1), rest: cellH });
+                    }
+                }
+            }
+
+            function loadImages(cb) {
+                let loaded = 0;
+                function done() { loaded++; if (loaded === 2) cb(); }
+                bgImg = new Image();
+                bgImg.onload = done;
+                bgImg.onerror = done;
+                bgImg.src = 'images/quad.jpg';
+                flagImg = new Image();
+                flagImg.onload = done;
+                flagImg.onerror = done;
+                flagImg.src = 'images/Iguana.gif';
+            }
+
+            function updatePhysics(dt) {
+                // Smoothly ease actual wind toward the mouse-driven target, plus a
+                // small idle sway so the flag never looks perfectly static.
+                const now = performance.now();
+                const t = (now - startTime) * 0.0015;
+                const idleSwayX = Math.sin(t) * 0.4;
+                const idleSwayY = Math.sin(t * 1.7) * 0.2;
+                windX += ((targetWindX + idleSwayX) - windX) * 0.06;
+                windY += ((targetWindY + idleSwayY) - windY) * 0.06;
+
+                // A real flag doesn't just tilt in a constant breeze - it ripples,
+                // with the wave traveling down its length away from the pole. This
+                // phase-shifted sine (offset by column, animated over time) is what
+                // actually produces that traveling-ripple look, layered on top of
+                // the mouse-directed wind.
+                const wavePhaseSpeed = (now - startTime) * 0.008;
+                const windSpeed = Math.sqrt(windX * windX + windY * windY);
+
+                for (const p of points) {
+                    if (p.pinned) continue;
+                    const vx = (p.x - p.oldX) * DAMPING;
+                    const vy = (p.y - p.oldY) * DAMPING;
+                    p.oldX = p.x;
+                    p.oldY = p.y;
+                    // points further from the pole catch more wind (like real cloth)
+                    const reach = 0.25 + (p.col / GRID_COLS) * 0.85;
+                    const ripple = Math.sin(wavePhaseSpeed - p.col * 0.55) * (0.4 + windSpeed * 0.5) * reach;
+                    p.x += vx + windX * reach * dt;
+                    p.y += vy + windY * reach * dt + GRAVITY * dt + ripple * dt;
+                }
+
+                for (let iter = 0; iter < SPRING_ITERATIONS; iter++) {
+                    for (const s of springs) {
+                        const p1 = points[s.a], p2 = points[s.b];
+                        const dx = p2.x - p1.x, dy = p2.y - p1.y;
+                        const dist = Math.sqrt(dx * dx + dy * dy) || 0.0001;
+                        const diff = (dist - s.rest) / dist;
+                        const offX = dx * 0.5 * diff, offY = dy * 0.5 * diff;
+                        if (!p1.pinned) { p1.x += offX; p1.y += offY; }
+                        if (!p2.pinned) { p2.x -= offX; p2.y -= offY; }
+                    }
+                }
+
+                // Tear the flag free once enough SUSTAINED fast movement has been
+                // measured (see onMouseMove / decayRecentSpeed for how this is
+                // actually computed - a real time-based average, continuously
+                // decaying even when the mouse goes idle, not per-frame or per-event).
+                decayRecentSpeed(performance.now());
+                if (!torn && recentSpeed > TEAR_THRESHOLD) {
+                    torn = true;
+                    for (const p of points) {
+                        if (p.col === 0) p.pinned = false;
+                    }
+                }
+            }
+
+            function drawTexturedTriangle(x0, y0, u0, v0, x1, y1, u1, v1, x2, y2, u2, v2) {
+                ctx.save();
+                ctx.beginPath();
+                ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.lineTo(x2, y2); ctx.closePath();
+                ctx.clip();
+                const denom = u0 * (v1 - v2) + u1 * (v2 - v0) + u2 * (v0 - v1);
+                if (Math.abs(denom) > 1e-6) {
+                    const a = (x0 * (v1 - v2) + x1 * (v2 - v0) + x2 * (v0 - v1)) / denom;
+                    const b = (y0 * (v1 - v2) + y1 * (v2 - v0) + y2 * (v0 - v1)) / denom;
+                    const c = (x0 * (u2 - u1) + x1 * (u0 - u2) + x2 * (u1 - u0)) / denom;
+                    const d = (y0 * (u2 - u1) + y1 * (u0 - u2) + y2 * (u1 - u0)) / denom;
+                    const e = (x0 * (u1 * v2 - u2 * v1) + x1 * (u2 * v0 - u0 * v2) + x2 * (u0 * v1 - u1 * v0)) / denom;
+                    const f = (y0 * (u1 * v2 - u2 * v1) + y1 * (u2 * v0 - u0 * v2) + y2 * (u0 * v1 - u1 * v0)) / denom;
+                    ctx.transform(a, b, c, d, e, f);
+                    ctx.drawImage(flagImg, 0, 0);
+                }
+                ctx.restore();
+            }
+
+            function computeShade(ratio) {
+                const raw = (1 - ratio) * 1.1;
+                // Asymmetric: shadows stay strong, highlights are toned way down -
+                // parts of the flag were looking blown-out/overexposed with both
+                // directions weighted equally.
+                return raw >= 0 ? Math.min(0.42, raw) : Math.max(-0.06, raw);
+            }
+
+            function shadeToColor(shade) {
+                return shade >= 0 ? `rgba(0,0,0,${shade})` : `rgba(255,255,255,${-shade})`;
+            }
+
+            function drawFlag() {
+                if (!flagImg || !flagImg.naturalWidth) return;
+                const iw = flagImg.naturalWidth, ih = flagImg.naturalHeight;
+                const idx = (col, row) => row * (GRID_COLS + 1) + col;
+                const cellW = flagW / GRID_COLS;
+
+                // First pass: a shade value per grid POINT (not per cell), averaged
+                // from its horizontally-adjacent edges. Cell-by-cell flat shading
+                // looks blocky/faceted; computing it per-vertex lets each cell be
+                // filled with a smooth gradient instead, and since neighboring cells
+                // share the same vertex values, shading blends continuously across
+                // cell boundaries with no visible seams.
+                for (let row = 0; row <= GRID_ROWS; row++) {
+                    for (let col = 0; col <= GRID_COLS; col++) {
+                        const p = points[idx(col, row)];
+                        let total = 0, count = 0;
+                        if (col > 0) {
+                            const left = points[idx(col - 1, row)];
+                            total += (p.x - left.x) / cellW;
+                            count++;
+                        }
+                        if (col < GRID_COLS) {
+                            const right = points[idx(col + 1, row)];
+                            total += (right.x - p.x) / cellW;
+                            count++;
+                        }
+                        p.shade = computeShade(count > 0 ? total / count : 1);
+                    }
+                }
+
+                for (let row = 0; row < GRID_ROWS; row++) {
+                    for (let col = 0; col < GRID_COLS; col++) {
+                        const p00 = points[idx(col, row)];
+                        const p10 = points[idx(col + 1, row)];
+                        const p01 = points[idx(col, row + 1)];
+                        const p11 = points[idx(col + 1, row + 1)];
+                        const u0 = (col / GRID_COLS) * iw, u1 = ((col + 1) / GRID_COLS) * iw;
+                        const v0 = (row / GRID_ROWS) * ih, v1 = ((row + 1) / GRID_ROWS) * ih;
+                        drawTexturedTriangle(p00.x, p00.y, u0, v0, p10.x, p10.y, u1, v0, p01.x, p01.y, u0, v1);
+                        drawTexturedTriangle(p10.x, p10.y, u1, v0, p11.x, p11.y, u1, v1, p01.x, p01.y, u0, v1);
+
+                        const leftShade = (p00.shade + p01.shade) / 2;
+                        const rightShade = (p10.shade + p11.shade) / 2;
+                        if (Math.abs(leftShade) > 0.01 || Math.abs(rightShade) > 0.01) {
+                            ctx.save();
+                            ctx.beginPath();
+                            ctx.moveTo(p00.x, p00.y); ctx.lineTo(p10.x, p10.y);
+                            ctx.lineTo(p11.x, p11.y); ctx.lineTo(p01.x, p01.y);
+                            ctx.closePath();
+                            const grad = ctx.createLinearGradient(p00.x, p00.y, p10.x, p10.y);
+                            grad.addColorStop(0, shadeToColor(leftShade));
+                            grad.addColorStop(1, shadeToColor(rightShade));
+                            ctx.fillStyle = grad;
+                            ctx.fill();
+                            ctx.restore();
+                        }
+                    }
+                }
+            }
+
+            function drawPole() {
+                ctx.save();
+                const left = poleX - poleWidth / 2;
+                const top = poleTopY; // flush with the flag's top edge, no extension above
+                const height = poleBottomY - poleTopY;
+                // A left-to-right gradient across the pole's width, like light
+                // wrapping around a cylinder - darker on the left edge, a bright
+                // highlight band, then darker again toward the right edge.
+                const grad = ctx.createLinearGradient(left, 0, left + poleWidth, 0);
+                grad.addColorStop(0, '#3a3a3a');
+                grad.addColorStop(0.35, '#828282');
+                grad.addColorStop(0.55, '#a8a8a8');
+                grad.addColorStop(0.8, '#5f5f5f');
+                grad.addColorStop(1, '#333333');
+                ctx.fillStyle = grad;
+                ctx.fillRect(left, top, poleWidth, height);
+                ctx.restore();
+            }
+
+            function render() {
+                const w = canvas.width, h = canvas.height;
+                ctx.clearRect(0, 0, w, h);
+                ctx.fillStyle = '#000';
+                ctx.fillRect(0, 0, w, h);
+                if (bgImg && bgImg.naturalWidth) {
+                    // Contain-fit (like the original) - the whole photo stays visible,
+                    // with black letterboxing on whichever sides don't fill exactly,
+                    // rather than cropping the image to fill the screen.
+                    bgRect = computeBgRect(w, h);
+                    ctx.drawImage(bgImg, bgRect.x, bgRect.y, bgRect.w, bgRect.h);
+                }
+                drawPole();
+                drawFlag();
+            }
+
+            function loop() {
+                updatePhysics(1);
+                render();
+                animId = requestAnimationFrame(loop);
+            }
+
+            function resizeCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+
+            function onMouseMove(e) {
+                const now = performance.now();
+                decayRecentSpeed(now);
+                if (lastMouseX !== null) {
+                    const dt = Math.max(1, now - lastMouseMoveTime);
+                    const dx = e.clientX - lastMouseX;
+                    const dy = e.clientY - lastMouseY;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    const velocity = (dist / dt) * 1000; // true pixels/second
+
+                    // Blend this fresh reading in, weighted by how much real time it
+                    // covers - this stays frequency-independent whether events fire
+                    // rarely (trackpad) or very often (high-polling-rate mouse).
+                    const blendHalfLifeMs = 220;
+                    const blend = 1 - Math.pow(0.5, dt / blendHalfLifeMs);
+                    recentSpeed = recentSpeed * (1 - blend) + velocity * blend;
+
+                    targetWindX = Math.max(-4, Math.min(4, dx * 0.15)) + 0.6;
+                    targetWindY = Math.max(-3, Math.min(3, dy * 0.15));
+                }
+                lastMouseX = e.clientX;
+                lastMouseY = e.clientY;
+                lastMouseMoveTime = now;
+            }
+
+            function onKeyDown(e) {
+                if (e.key === 'Escape') closeIguanaEasterEgg();
+            }
+
+            window.openIguanaEasterEgg = function() {
+                const overlay = document.getElementById('iguana-overlay');
+                canvas = document.getElementById('iguana-canvas');
+                ctx = canvas.getContext('2d');
+                overlay.classList.remove('hidden');
+                resizeCanvas();
+
+                torn = false;
+                windX = 1.2; windY = 0; targetWindX = 1.2; targetWindY = 0;
+                lastMouseX = null; lastMouseY = null; recentSpeed = 0;
+                lastSpeedUpdateTime = performance.now();
+                startTime = performance.now();
+
+                if (imagesReady) {
+                    // Already cached from a previous open - real photo dimensions are
+                    // known, so build against the accurate rect and start rendering
+                    // immediately.
+                    bgRect = computeBgRect(canvas.width, canvas.height);
+                    buildCloth();
+                    window.addEventListener('resize', resizeCanvas);
+                    document.addEventListener('mousemove', onMouseMove);
+                    document.addEventListener('keydown', onKeyDown);
+                    if (animId) cancelAnimationFrame(animId);
+                    loop();
+                } else {
+                    // First-ever open: the overlay is already visible (solid black,
+                    // via its own background) but the render loop doesn't start until
+                    // the real photo has actually loaded and buildCloth() has run
+                    // against its true dimensions. Starting the loop immediately with
+                    // a fallback layout, then repositioning once the image loads,
+                    // caused an intermittent visible "jump" mid-animation - visible
+                    // only when the image happened to take a bit longer to load,
+                    // which is why it wasn't happening every time.
+                    window.addEventListener('resize', resizeCanvas);
+                    document.addEventListener('mousemove', onMouseMove);
+                    document.addEventListener('keydown', onKeyDown);
+                    loadImages(() => {
+                        imagesReady = true;
+                        // Guard against the user having already closed the overlay
+                        // while the images were still loading - without this, the
+                        // loop would start running invisibly in the background.
+                        if (document.getElementById('iguana-overlay').classList.contains('hidden')) return;
+                        bgRect = computeBgRect(canvas.width, canvas.height);
+                        buildCloth();
+                        if (animId) cancelAnimationFrame(animId);
+                        loop();
+                    });
+                }
+            };
+
+            window.closeIguanaEasterEgg = function() {
+                document.getElementById('iguana-overlay').classList.add('hidden');
+                if (animId) { cancelAnimationFrame(animId); animId = null; }
+                window.removeEventListener('resize', resizeCanvas);
+                document.removeEventListener('mousemove', onMouseMove);
+                document.removeEventListener('keydown', onKeyDown);
+            };
+
+            // Trigger: the browser natively populates dataTransfer when you drag a
+            // text selection out of an input, so we just watch for a drop anywhere
+            // on the page containing exactly the trigger phrase.
+            document.addEventListener('dragover', (e) => { e.preventDefault(); });
+            document.addEventListener('drop', (e) => {
+                const text = (e.dataTransfer.getData('text/plain') || '').trim().toLowerCase();
+                if (text === 'secret about box') {
+                    e.preventDefault();
+                    window.openIguanaEasterEgg();
+                }
+            });
+        })();
     </script>
+    <!-- Iguana Easter Egg: type "secret about box" in the address bar, select it, and
+         drag it onto the desktop. Fullscreen quad.jpg background, Iguana.gif flag on a
+         pole simulated with cloth physics, mouse-directed wind, whip-to-tear. -->
+    <div id="iguana-overlay" class="fixed inset-0 z-[999999] hidden bg-black overflow-hidden">
+        <canvas id="iguana-canvas" class="absolute inset-0 w-full h-full block"></canvas>
+        <button onclick="closeIguanaEasterEgg()" class="fixed top-3 right-3 z-[1000000] xp-control-btn xp-btn-close w-6 h-6 flex items-center justify-center text-sm font-bold">X</button>
+    </div>
+
 </body>
 </html>
