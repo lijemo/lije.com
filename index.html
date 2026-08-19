@@ -126,11 +126,6 @@
             background-color: #ece9d8;
             border-bottom: 1px solid #aca899;
         }
-        .xp-address-bar {
-            background-color: white;
-            border: 1px solid #7f9db9;
-            box-shadow: inset 1px 1px 2px #d0d0d0;
-        }
 
         .xp-sidebar {
             background-color: #f1f3e7;
@@ -1044,8 +1039,7 @@
         // appearance). Every measurement that needs to move together - ruled-line
         // spacing, the red margin line's position, padding, font size - is derived
         // from these, multiplied by one scale factor, so they always stay in sync.
-        // Desktop always uses scale 1 (unchanged); mobile uses a smaller baked-in
-        // scale, decided via the debug slider.
+        // Desktop always uses scale 1 (unchanged); mobile uses a smaller baked-in scale.
         const BINDER_BASE = {
             lineHeight: 28,
             paddingLeft: 55,
@@ -1859,6 +1853,17 @@
         let activeBubbles = [];
         let bubblesAnimationId = null;
 
+        // Registered once, not per-toggle - initBubbles() used to re-register this
+        // on every single "turn bubbles on" click, leaking one extra permanent
+        // resize listener each time it was toggled.
+        function resizeBubblesCanvas() {
+            const canvas = document.getElementById('bubbles-canvas');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight - 35;
+        }
+        window.addEventListener('resize', resizeBubblesCanvas);
+        resizeBubblesCanvas();
+
         function startBubbles() {
             if (bubblesAnimationId) {
                 cancelAnimationFrame(bubblesAnimationId);
@@ -1889,13 +1894,6 @@
                 outline: 1,
                 max: isMobile ? 10 : 30
             };
-
-            function resizeCanvas() {
-                canvas.width = window.innerWidth;
-                canvas.height = window.innerHeight - 35;
-            }
-            window.addEventListener('resize', resizeCanvas);
-            resizeCanvas();
 
             class Bubble {
                 constructor() {
@@ -2412,17 +2410,6 @@
                         switchToLoopVideo();
                     });
                 }
-                
-                document.addEventListener('visibilitychange', () => {
-                    if (document.hidden) {
-                        pauseVimeo();
-                    } else {
-                        if (!document.getElementById('reel').classList.contains('hidden') && 
-                            !document.getElementById('main-window').classList.contains('hidden')) {
-                            playVimeo();
-                        }
-                    }
-                });
 
                 setTimeout(() => {
                     const icons = document.querySelectorAll('.desktop-icon');
