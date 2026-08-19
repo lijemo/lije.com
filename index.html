@@ -861,8 +861,8 @@
 
     <!-- Paint Menu -->
     <div id="chalk-menu" class="hidden fixed bottom-[35px] w-36 md:w-40 bg-white border border-[#aca899] shadow-[2px_2px_5px_rgba(0,0,0,0.5)] z-[200001] flex flex-col p-1 font-['Tahoma'] text-xs text-black">
-        <div class="px-3 md:px-4 py-1 hover:bg-[#316ac5] hover:text-white cursor-pointer flex items-center gap-2" onclick="setChalkColor('rgba(255,255,255,0.9)')"><div class="w-3 h-3 border border-gray-400 bg-white"></div> White</div>
         <div class="px-3 md:px-4 py-1 hover:bg-[#316ac5] hover:text-white cursor-pointer flex items-center gap-2" onclick="setChalkColor('rgba(0,0,0,0.9)')"><div class="w-3 h-3 border border-gray-400 bg-black"></div> Black</div>
+        <div class="px-3 md:px-4 py-1 hover:bg-[#316ac5] hover:text-white cursor-pointer flex items-center gap-2" onclick="setChalkColor('rgba(255,255,255,0.9)')"><div class="w-3 h-3 border border-gray-400 bg-white"></div> White</div>
         <div class="px-3 md:px-4 py-1 hover:bg-[#316ac5] hover:text-white cursor-pointer flex items-center gap-2" onclick="setChalkColor('rgba(255,0,0,0.9)')"><div class="w-3 h-3 border border-gray-400 bg-red-500"></div> Red</div>
         <div class="px-3 md:px-4 py-1 hover:bg-[#316ac5] hover:text-white cursor-pointer flex items-center gap-2" onclick="setChalkColor('rgba(255,255,0,0.9)')"><div class="w-3 h-3 border border-gray-400 bg-yellow-400"></div> Yellow</div>
         <div class="px-3 md:px-4 py-1 hover:bg-[#316ac5] hover:text-white cursor-pointer flex items-center gap-2" onclick="setChalkColor('rgba(0,128,0,0.9)')"><div class="w-3 h-3 border border-gray-400 bg-green-600"></div> Green</div>
@@ -959,21 +959,8 @@
 
         let highestZIndex = 50;
 
-        let lastIconClicked = null;
-        let iconClickTime = 0;
         function handleDesktopIcon(e, callback) {
-            if (window.innerWidth <= 768 || ('ontouchstart' in window && navigator.maxTouchPoints > 0)) {
-                callback();
-            } else {
-                const now = Date.now();
-                if (lastIconClicked === e.currentTarget && (now - iconClickTime) < 500) {
-                    callback();
-                    lastIconClicked = null;
-                } else {
-                    lastIconClicked = e.currentTarget;
-                    iconClickTime = now;
-                }
-            }
+            callback();
         }
 
         function handleAddressEnter(event) {
@@ -1030,7 +1017,11 @@
             }
 
             const addrIcon = document.getElementById('address-icon');
-            if (localIconSrc) {
+            // Only touch the icon when it's actually changing to a different tab -
+            // reassigning src to the same value it already had (e.g. clicking the
+            // already-active tab again) was causing a brief re-render flash, and on
+            // mobile could leave the icon blank while it needlessly reloaded.
+            if (localIconSrc && addrIcon.getAttribute('src') !== localIconSrc) {
                 addrIcon.src = localIconSrc;
                 if(fallbackIconSrc) {
                     addrIcon.onerror = function() {
@@ -2210,7 +2201,7 @@
         let currentChalkStroke = [];
         let isChalking = false;
         let chalkActive = false;
-        let chalkColor = 'rgba(255, 255, 255, 0.9)';
+        let chalkColor = 'rgba(0, 0, 0, 0.9)';
         let lastWiggleTime = Date.now();
 
         function resizeChalkCanvas() {
